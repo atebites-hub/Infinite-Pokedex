@@ -19,6 +19,7 @@ The following 9 documents in `/docs/agents/` define your context boundary and mu
 9. **[Documentation Guidelines.md](mdc:docs/agents/Documentation Guidelines.md)** - Defines doc formats, policies, and maintenance.
 
 ## Project-Specific Guidelines
+
 - **Project**: Infinite Pokédex - Progressive Web App with AI-generated Pokémon lore
 - **Core Docs**: 9 reference documents in `/docs/agents/` define project scope
 - **Technology Focus**: Vanilla HTML/CSS/JS, WebLLM, WebSD, Node.js crawler, PWA architecture
@@ -39,11 +40,13 @@ The following 9 documents in `/docs/agents/` define your context boundary and mu
 ### Documentation Requirements
 
 **MANDATORY**: Update documentation as you work:
+
 - **scratchpad.md**: Update project status, progress tracking, and feedback sections.
 - **Code Documentation**: For every new/edit/deleted code file (e.g., `renderer.js`), create/update/delete the corresponding `/docs/code/renderer.md` with Mermaid diagram, description, and function breakdowns.
 - **Test Documentation**: Update `/docs/tests/` (e.g., `unit.md`) for new tests, including run commands and edge cases.
 
 **CRITICAL**: Ensure these tasks are done before marking your current objective as complete.
+
 - **Task Completion**: Mark tasks complete in `scratchpad.md` with verification; improve Implementation Plan.md to reflect scratchpad status board.
 - **Agents**: As project scope changes, review and update all docs in `/docs/agents/` to match. Only edit with explicit user instruction.
 
