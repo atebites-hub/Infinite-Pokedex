@@ -33,5 +33,8 @@ module.exports = {
     navigator: 'readonly',
     window: 'readonly',
     document: 'readonly',
+    self: 'readonly',
+    clients: 'readonly',
+    caches: 'readonly',
   },
 };

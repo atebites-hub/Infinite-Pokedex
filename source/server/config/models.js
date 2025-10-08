@@ -234,7 +234,7 @@ export function validateResponse(response, task) {
       }
       break;
 
-    case 'validation':
+    case 'validation': {
       const requiredFields = [
         'accuracy',
         'appropriateness',
@@ -249,6 +249,7 @@ export function validateResponse(response, task) {
         }
       }
       break;
+    }
 
     case 'safetyFilter':
       if (!('safe' in response) || typeof response.safe !== 'boolean') {
