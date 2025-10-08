@@ -10,6 +10,7 @@
 
 import { openDB } from './storage.js';
 import { error as logError, info as logInfo } from './logger.js';
+import { versionManager } from './version.js';
 
 const CDN_BASE_URL = import.meta.env.VITE_CDN_URL || 'https://cdn.infinite-pokedex.com';
 const CHUNK_SIZE = 100; // Species per chunk
@@ -31,7 +32,8 @@ export class CDNSync {
    */
   async initialize() {
     this.db = await openDB();
-    this.currentVersion = await this.getCurrentVersion();
+    await versionManager.initialize();
+    this.currentVersion = versionManager.getCurrentVersion();
     logInfo('CDN Sync initialized', { currentVersion: this.currentVersion });
   }
 
@@ -70,7 +72,13 @@ export class CDNSync {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
         const manifest = await response.json();
-        logInfo('Manifest fetched', { version: manifest.version, count: manifest.species.length });
+        
+        // Validate manifest structure
+        if (!versionManager.validateManifest(manifest)) {
+          throw new Error('Invalid manifest structure');
+        }
+        
+        logInfo('Manifest fetched', { version: manifest.version, count: manifest.species?.length || manifest.files?.length });
         return manifest;
       } catch (err) {
         if (attempt === MAX_RETRIES - 1) {
@@ -89,18 +97,15 @@ export class CDNSync {
    * @returns {Promise<boolean>} True if sync needed
    */
   async needsSync(manifest) {
-    if (!this.currentVersion) {
-      logInfo('No current version, sync needed');
-      return true;
-    }
+    const hasUpdate = await versionManager.checkForUpdates(`${CDN_BASE_URL}/species/index.json`);
     
-    const needsUpdate = this.currentVersion !== manifest.version;
     logInfo('Version check', { 
       current: this.currentVersion, 
       latest: manifest.version, 
-      needsSync: needsUpdate 
+      needsSync: hasUpdate 
     });
-    return needsUpdate;
+    
+    return hasUpdate;
   }
 
   /**
@@ -163,6 +168,15 @@ export class CDNSync {
         }
         
         const speciesData = await response.json();
+        
+        // Verify data integrity if hash is provided
+        if (speciesRef.hash) {
+          const isValid = await versionManager.verifyIntegrity(speciesData, speciesRef.hash);
+          if (!isValid) {
+            throw new Error(`Integrity check failed for species ${speciesRef.id}`);
+          }
+        }
+        
         await this.storeSpecies(speciesData);
         return;
       } catch (err) {
@@ -337,6 +351,11 @@ export class CDNSync {
 
       // Save version and clear checkpoint
       await this.saveVersion(manifest.version);
+      await versionManager.updateVersion(manifest.version);
+      await versionManager.addToHistory(manifest.version, {
+        totalSpecies: manifest.species?.length || manifest.files?.length,
+        syncDuration: Date.now() - (checkpoint?.timestamp || Date.now()),
+      });
       await this.clearCheckpoint();
 
       logInfo('Sync completed', { version: manifest.version });
