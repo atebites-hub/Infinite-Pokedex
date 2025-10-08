@@ -3,8 +3,11 @@ export default {
   testMatch: ['**/tests/**/*.test.js', '**/tests/**/*.spec.js'],
   collectCoverageFrom: [
     'source/client/js/**/*.js',
+    'source/server/**/*.js',
     '!source/client/js/**/*.test.js',
     '!source/client/js/**/*.spec.js',
+    '!source/server/**/*.test.js',
+    '!source/server/**/*.spec.js',
   ],
   coverageThreshold: {
     global: {
@@ -13,5 +16,10 @@ export default {
       lines: 80,
       statements: 80,
     },
+  },
+  transform: {},
+  testTimeout: 10000,
+  moduleNameMapper: {
+    '^(\\.{1,2}/.*)\\.js$': '$1',
   },
 };

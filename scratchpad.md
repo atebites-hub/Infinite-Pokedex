@@ -68,10 +68,10 @@ The project combines server-side web crawling of Bulbapedia/Serebii for canonica
 
 ## Current Status / Progress Tracking
 
-**Project Status**: Multi-agent Sprint 1 development initiated  
-**Current Sprint**: Sprint 1 (Foundation & Setup) - 3 parallel agents  
-**Progress**: 0% (ready for development)  
-**Last Updated**: Multi-agent coordination setup
+**Project Status**: Multi-agent Sprint 1 development in progress  
+**Current Sprint**: Sprint 1 (Foundation & Setup) - 2 agents completed, 1 pending  
+**Progress**: 67% (2/3 agents completed)  
+**Last Updated**: Agent 2 (Server Infrastructure) completed
 
 ### Completed
 
@@ -118,13 +118,14 @@ The project combines server-side web crawling of Bulbapedia/Serebii for canonica
 - [x] Set up IndexedDB wrapper and data management
 - [x] Create responsive mobile-first design
 
-**Agent 2 (Server Infrastructure)**: `feature/server-infrastructure`
+**Agent 2 (Server Infrastructure)**: `feature/server-infrastructure` ✅ COMPLETED
 
-- [ ] Set up Node.js server structure and dependencies
-- [ ] Implement respectful web crawler for Bulbapedia/Serebii
-- [ ] Build HTML parser and data normalizer
-- [ ] Integrate OpenRouter LLM for tidbit synthesis
-- [ ] Create dataset builder and CDN publisher
+- [x] Set up Node.js server structure and dependencies
+- [x] Implement respectful web crawler for Bulbapedia/Serebii
+- [x] Build HTML parser and data normalizer
+- [x] Integrate OpenRouter LLM for tidbit synthesis
+- [x] Create dataset builder and CDN publisher
+- [x] Add Smogon crawler for Strategy Pokedex and forums
 
 **Agent 3 (Development Environment)**: `feature/dev-environment`
 
@@ -155,9 +156,34 @@ The project combines server-side web crawling of Bulbapedia/Serebii for canonica
 
 ### Agent-Specific Notes
 
-**Agent 1 (Frontend)**: Focus on PWA structure, Gen 9 UI, IndexedDB wrapper
-**Agent 2 (Server)**: Focus on crawler, parser, LLM integration, CDN publishing  
-**Agent 3 (DevOps)**: Focus on testing, CI/CD, automation, quality gates
+**Agent 1 (Frontend)**: ✅ COMPLETED - PWA structure, Gen 9 UI, IndexedDB wrapper
+**Agent 2 (Server)**: ✅ COMPLETED - Crawler, parser, LLM integration, CDN publishing  
+**Agent 3 (DevOps)**: Pending - Testing, CI/CD, automation, quality gates
+
+### Agent 2 (Server Infrastructure) - COMPLETED
+
+**Accomplishments:**
+
+- ✅ Complete Node.js server structure with modular architecture
+- ✅ Respectful web crawler with rate limiting and robots.txt compliance
+- ✅ HTML parser using Cheerio with domain-specific extractors
+- ✅ OpenRouter LLM integration for tidbit synthesis with safety filters
+- ✅ Dataset builder with versioning and content hashing
+- ✅ CDN publisher with atomic updates and rollback support
+- ✅ Comprehensive configuration system for multiple CDN providers
+- ✅ Structured logging and error handling
+- ✅ Test suite and documentation
+
+**Key Features Implemented:**
+
+- Rate limiting with exponential backoff and circuit breakers
+- Multi-source data normalization and validation
+- LLM-powered tidbit generation with quality controls
+- Atomic CDN publishing with version management
+- Support for AWS S3, Cloudflare R2, and Vercel Blob
+- Comprehensive error handling and logging
+- Smogon Strategy Pokedex crawler for competitive data
+- Smogon forums crawler for community discussions and tidbits
 
 ### Key Decisions Made
 
@@ -188,6 +214,22 @@ The project combines server-side web crawling of Bulbapedia/Serebii for canonica
 - **PWA Architecture**: Offline-first design with IndexedDB and Service Worker caching
 - **Gen 9 Aesthetics**: CSS animations and transforms can recreate game-like feel without frameworks
 - **Respectful Crawling**: Rate limiting and robots.txt compliance essential for sustainable scraping
+- **Configuration Architecture**: BaseCrawler should use defaultConfig directly, not try to get 'default' source config
+- **Rate Limiting Bug Fix**: Fixed RateLimiter.wait() method to properly handle fractional requestsPerSecond and prevent burstTokens from becoming permanently zero
+- **CLI Detection Bug Fix**: Fixed CLI detection logic in index.js to use more robust path comparison that handles undefined process.argv[1] and cross-platform path differences by using import.meta.url comparison as primary method with fallback to fileURLToPath() and resolve() comparison
+- **Robots.txt Parser Bug Fix**: Fixed RobotsParser.parseRobotsTxt() method to skip lines without colons, preventing undefined value variables that could cause unexpected behavior when processing robots.txt rules
+- **Cache Key Bug Fix**: Fixed TidbitSynthesizer.getCacheKey() method to include forum data in cache key and use full SHA-256 hash instead of truncated hash, preventing stale tidbits when forum discussions change and reducing hash collision risk
+- **Cache Key Generation Bug Fix**: Fixed TidbitSynthesizer.enrichSpecies() method to handle getForumData() failures gracefully without breaking cache key generation, ensuring stable cache keys even when forum data is unavailable or inconsistent
+- **Cache Key Normalization Bug Fix**: Fixed TidbitSynthesizer.getCacheKey() method to normalize forum data by using a consistent placeholder ('no-forum-data') when forum data is empty or undefined, preventing cache misses due to inconsistent empty string values
+- **Test Refactoring**: Moved test-cache-key.js to tests/unit/ directory and created comprehensive test suite with cache-key-fix.test.js and cache-key-fix-runner.js for proper test structure and Jest integration
+- **Text Cleaning Bug Fix**: Fixed regex pattern in DataProcessor.cleanText() and sanitizeText() functions to preserve valid punctuation like apostrophes, parentheses, and colons while still removing invalid special characters, preventing corruption of Pokémon names and descriptions
+- **Unicode Character Preservation Bug Fix**: Fixed sanitizeText() function in validation.js and cleanText() methods in parser.js and serebii.js to use Unicode property escapes (\p{L}, \p{N}) instead of \w, preserving accented characters (é, ñ), gender symbols (♀, ♂), and other Unicode characters in Pokémon names like Flabébé, Farfetch'd, and Nidoran♀/♂. Also improved HTML tag removal to use proper regex pattern `/<[^>]*>/g` instead of just removing `<>` characters. Created comprehensive test suite (validation-runner.js) with 18 passing tests to verify Unicode preservation.
+- **SerebiiCrawler Data Extraction Bug Fix**: Fixed SerebiiCrawler class to replace hardcoded placeholder values with actual HTML parsing using Cheerio, enabling proper extraction of Pokémon data from Serebii pages including name, types, stats, abilities, moves, description, locations, and evolution information
+- **Robots.txt Multiple Colons Bug Fix**: Fixed RobotsParser.parseRobotsTxt() method in BaseCrawler to properly handle lines containing multiple colons by using indexOf(':') and substring() instead of split(':'), ensuring complete value preservation for robots.txt rules like "Disallow: /path:with:colons"
+- **Robots.txt Malformed Lines Handling**: Enhanced RobotsParser.parseRobotsTxt() method in BaseCrawler to add comprehensive validation and logging for malformed robots.txt lines including: (1) debug logging when lines are missing colons, (2) validation to skip lines with empty directives, (3) debug logging for empty directive lines. Also removed redundant .toLowerCase() calls on already-lowercased directive variables. Added comprehensive test suite (robots-parser.test.js) with 5 passing tests covering edge cases like missing colons, empty directives, multiple colons in values, empty values, and comment handling
+- **Rate Limiter Burst Token Logic Bug Fix**: Fixed RateLimiter.wait() method in BaseCrawler to properly handle burst token consumption and refill during wait periods, preventing burstTokens from becoming permanently zero or negative by accounting for time elapsed during waits and using Math.max(0, burstTokens - 1) for token consumption
+- **Rate Limiter Minute Limit Check Bug Fix**: Fixed minute limit check in RateLimiter.wait() method to safely handle empty requests array by checking array length before using Math.min(...this.requests), preventing runtime errors when no previous requests exist
+- **LLM Response Validation Bug Fix**: Fixed TidbitSynthesizer methods (generateTidbits, generateTidbitsFallback, checkSafety, checkQuality) to validate OpenRouter API response structure before accessing nested properties like response.data.choices[0].message.content, preventing runtime errors when API returns empty or malformed responses. Created reusable extractResponseContent() helper method with comprehensive validation of response structure including checks for null response, missing data, invalid choices array, empty choices, missing message, and invalid content. Added descriptive error messages with context for better debugging. All existing inline validation replaced with helper method calls for consistency and maintainability. Updated test suite with 25 passing tests including 10 new tests for extractResponseContent() method covering all edge cases. Updated package.json to enable Jest experimental ES modules support with NODE_OPTIONS='--experimental-vm-modules' flag
 
 ### Process Lessons
 

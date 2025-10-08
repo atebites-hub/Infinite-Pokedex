@@ -26,6 +26,9 @@ npm run format
 echo "🧪 Running unit tests..."
 npm test
 
+echo "🔑 Running cache key fix tests..."
+./scripts/test-cache-key.sh
+
 echo "🌐 Running E2E tests..."
 npm run test:e2e
 
