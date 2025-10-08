@@ -1,0 +1,55 @@
+# Node.js dependencies and build artifacts
+node_modules/
+dist/
+build/
+coverage/
+.env
+.env.*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.vite/
+.eslintcache
+.cache/
+*.tsbuildinfo
+
+# PWA/Frontend build artifacts
+*.log
+*.local
+*.DS_Store
+*.swp
+*.swo
+*.tmp
+*.bak
+*.orig
+*.pid
+*.seed
+*.tgz
+
+# MacOS system files
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# VSCode and IDE settings
+.vscode/
+.idea/
+*.code-workspace
+
+# Test output
+/jest-coverage/
+test-results/
+playwright-report/
+*.lcov
+
+# Misc
+*.iml
+*.sublime-workspace
+*.sublime-project
