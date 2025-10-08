@@ -9,7 +9,7 @@
  * @version 1.0.0
  */
 
-const { describe, it, expect, beforeEach } = require('@jest/globals');
+import { describe, it, expect, beforeEach } from '@jest/globals';
 
 // Mock the RateLimiter class from base-crawler.js
 class RateLimiter {

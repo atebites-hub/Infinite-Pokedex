@@ -45,6 +45,41 @@ export class TidbitSynthesizer {
   }
 
   /**
+   * Safely extract content from OpenRouter API response
+   * 
+   * Pre: response object from axios HTTP call
+   * Post: returns content string or throws descriptive error
+   * 
+   * @param {Object} response - Axios response object
+   * @param {string} context - Context string for error messages (e.g., 'tidbit generation')
+   * @returns {string} Extracted message content
+   * @throws {Error} If response structure is invalid
+   */
+  extractResponseContent(response, context = 'API call') {
+    if (!response || !response.data) {
+      throw new Error(`Invalid response structure in ${context}: missing response.data`);
+    }
+
+    if (!response.data.choices || !Array.isArray(response.data.choices)) {
+      throw new Error(`Invalid response structure in ${context}: missing or invalid choices array`);
+    }
+
+    if (response.data.choices.length === 0) {
+      throw new Error(`Invalid response structure in ${context}: choices array is empty`);
+    }
+
+    if (!response.data.choices[0].message) {
+      throw new Error(`Invalid response structure in ${context}: missing message in first choice`);
+    }
+
+    if (typeof response.data.choices[0].message.content !== 'string') {
+      throw new Error(`Invalid response structure in ${context}: missing or invalid content in message`);
+    }
+
+    return response.data.choices[0].message.content;
+  }
+
+  /**
    * Enrich species data with generated tidbits
    * @param {Object} processedData - Processed species data
    * @returns {Promise<Object>} Enriched data with tidbits
@@ -173,7 +208,7 @@ export class TidbitSynthesizer {
         throw new Error(`OpenRouter API error: ${response.status}`);
       }
 
-      const content = response.data.choices[0].message.content;
+      const content = this.extractResponseContent(response, 'tidbit generation');
       const parsed = this.parseTidbitsResponse(content);
 
       return parsed.tidbits || [];
@@ -224,7 +259,7 @@ export class TidbitSynthesizer {
       top_p: modelConfig.topP,
     });
 
-    const content = response.data.choices[0].message.content;
+    const content = this.extractResponseContent(response, 'fallback tidbit generation');
     const parsed = this.parseTidbitsResponse(content);
 
     return parsed.tidbits || [];
@@ -348,7 +383,7 @@ export class TidbitSynthesizer {
         temperature: modelConfig.temperature,
       });
 
-      const content = response.data.choices[0].message.content;
+      const content = this.extractResponseContent(response, 'safety check');
       const parsed = this.parseSafetyResponse(content);
 
       return parsed;
@@ -383,7 +418,7 @@ export class TidbitSynthesizer {
         temperature: modelConfig.temperature,
       });
 
-      const content = response.data.choices[0].message.content;
+      const content = this.extractResponseContent(response, 'quality check');
       const parsed = this.parseQualityResponse(content);
 
       return parsed;

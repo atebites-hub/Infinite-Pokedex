@@ -6,9 +6,11 @@ This document describes the unit test suites for the Infinite Pokédex project. 
 
 ## Test Framework
 
-**Primary Framework**: Node.js with custom test runners  
-**Alternative**: Jest (configured but requires ES module setup)  
+**Primary Framework**: Jest with experimental ES modules support  
+**Alternative**: Node.js with custom test runners for simple tests  
 **Coverage Goal**: 80%+ for all modules
+
+**Jest Configuration**: The project uses `NODE_OPTIONS='--experimental-vm-modules'` to enable ES module support in Jest. This is configured in `package.json` test script.
 
 ## Running Tests
 
@@ -154,18 +156,70 @@ Tests the RateLimiter class in BaseCrawler.
 
 ### Tidbit Synthesizer Tests (`tidbit-synthesizer.test.js`)
 
-Tests the TidbitSynthesizer class.
+Tests the TidbitSynthesizer class with comprehensive coverage of LLM response handling and cache management.
 
 **File**: `tests/unit/tidbit-synthesizer.test.js`  
 **Module Under Test**: `source/server/processors/tidbit-synthesizer.js`
 
-**Note**: Currently requires Jest ES module configuration to run.
+**Running Tests:**
+```bash
+npm test -- tests/unit/tidbit-synthesizer.test.js
+```
 
-#### Test Coverage
+**Note**: Uses Jest with experimental ES modules support (`NODE_OPTIONS='--experimental-vm-modules'`).
 
-- Cache key generation
-- Forum data handling
-- Cache clearing
+#### Test Coverage (25 tests total, all passing)
+
+**getCacheKey() Method:**
+- ✅ Generates different cache keys for different forum data
+- ✅ Generates same cache key for identical inputs
+- ✅ Uses full SHA-256 hash (64 characters)
+- ✅ Excludes tidbits array from cache key
+- ✅ Handles undefined forum data gracefully
+
+**getStats() Method:**
+- ✅ Returns synthesizer statistics with correct structure
+
+**clearCache() Method:**
+- ✅ Properly clears the cache
+
+**extractResponseContent() Method (NEW):**
+- ✅ Extracts content from valid API response
+- ✅ Throws error when response is null
+- ✅ Throws error when response.data is missing
+- ✅ Throws error when choices array is missing
+- ✅ Throws error when choices is not an array
+- ✅ Throws error when choices array is empty
+- ✅ Throws error when message is missing
+- ✅ Throws error when content is missing
+- ✅ Throws error when content is not a string
+- ✅ Includes context in error messages for debugging
+
+**generateTidbits() Response Validation:**
+- ✅ Handles empty choices array gracefully (falls back to empty array)
+- ✅ Handles missing choices property gracefully
+- ✅ Handles missing message content gracefully
+- ✅ Handles null response data gracefully
+
+**checkSafety() Response Validation:**
+- ✅ Returns safe default when response is invalid
+- ✅ Handles missing message content in safety check
+
+**checkQuality() Response Validation:**
+- ✅ Returns default quality when response is invalid
+- ✅ Handles null data in quality check
+
+#### Bug Fix Details
+
+The test suite verifies the fix for a critical bug where LLM response parsing methods (`generateTidbits`, `generateTidbitsFallback`, `checkSafety`, `checkQuality`) directly accessed `response.data.choices[0].message.content` without validation. This could cause runtime errors if the API returned unexpected response structures.
+
+**Solution**: Created a reusable `extractResponseContent()` helper method that:
+1. Validates response structure at each level
+2. Provides descriptive error messages with context
+3. Ensures consistent error handling across all LLM calls
+4. Prevents crashes from malformed API responses
+
+All methods now use this helper for safe response parsing with graceful error handling and fallback behavior.
 
 ## Writing New Tests
 
@@ -224,11 +278,11 @@ if (testsPassed === testsTotal) {
 
 ### Jest Pattern
 
-For tests that use Jest (when configuration is fixed):
+For tests that use Jest with ES modules:
 
 ```javascript
-const { describe, it, expect, beforeEach } = require('@jest/globals');
-const { functionToTest } = require('../../source/path/to/module.js');
+import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { functionToTest } from '../../source/path/to/module.js';
 
 describe('Module Name', () => {
   let instance;
@@ -336,3 +390,29 @@ Added comprehensive validation test suite (`validation-runner.js`) to verify Uni
 - Punctuation preservation (apostrophes, hyphens, etc.)
 - HTML tag removal
 - Edge case handling
+
+### 2025-10-08: LLM Response Validation Tests
+
+Added comprehensive response validation tests for TidbitSynthesizer to verify proper error handling when OpenRouter API returns malformed or empty responses. All 25 tests passing.
+
+**Bug Fixed:**
+- Multiple methods (`generateTidbits`, `generateTidbitsFallback`, `checkSafety`, `checkQuality`) were directly accessing `response.data.choices[0].message.content` without validation
+- Added defensive checks before accessing nested properties to prevent runtime errors
+
+**Key Tests Added:**
+- Empty choices array handling
+- Missing choices property handling
+- Missing message content handling
+- Null response data handling
+- Invalid response structure handling
+- Graceful fallback behavior verification
+
+**Run Command:**
+```bash
+NODE_OPTIONS="--experimental-vm-modules" npx jest tests/unit/tidbit-synthesizer.test.js
+```
+
+**Test Coverage:**
+- 25 tests total across cache key generation, stats, and response validation
+- All methods properly handle malformed API responses
+- Default fallback values ensure system continues operating even with API errors

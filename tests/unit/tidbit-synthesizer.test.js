@@ -5,8 +5,8 @@
  * and forum data handling.
  */
 
-const { describe, it, expect, beforeEach } = require('@jest/globals');
-const { TidbitSynthesizer } = require('../../source/server/processors/tidbit-synthesizer.js');
+import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { TidbitSynthesizer } from '../../source/server/processors/tidbit-synthesizer.js';
 
 describe('TidbitSynthesizer', () => {
   let synthesizer;
@@ -184,6 +184,305 @@ describe('TidbitSynthesizer', () => {
       // Clear cache
       synthesizer.clearCache();
       expect(synthesizer.cache.size).toBe(0);
+    });
+  });
+
+  describe('extractResponseContent', () => {
+    it('should extract content from valid response', () => {
+      const validResponse = {
+        status: 200,
+        data: {
+          choices: [
+            {
+              message: {
+                content: 'Test content',
+              },
+            },
+          ],
+        },
+      };
+
+      const content = synthesizer.extractResponseContent(validResponse, 'test');
+      expect(content).toBe('Test content');
+    });
+
+    it('should throw error when response is null', () => {
+      expect(() => {
+        synthesizer.extractResponseContent(null, 'test');
+      }).toThrow('Invalid response structure in test: missing response.data');
+    });
+
+    it('should throw error when response.data is missing', () => {
+      const response = { status: 200 };
+      expect(() => {
+        synthesizer.extractResponseContent(response, 'test');
+      }).toThrow('Invalid response structure in test: missing response.data');
+    });
+
+    it('should throw error when choices array is missing', () => {
+      const response = {
+        status: 200,
+        data: {},
+      };
+      expect(() => {
+        synthesizer.extractResponseContent(response, 'test');
+      }).toThrow('Invalid response structure in test: missing or invalid choices array');
+    });
+
+    it('should throw error when choices is not an array', () => {
+      const response = {
+        status: 200,
+        data: {
+          choices: 'not an array',
+        },
+      };
+      expect(() => {
+        synthesizer.extractResponseContent(response, 'test');
+      }).toThrow('Invalid response structure in test: missing or invalid choices array');
+    });
+
+    it('should throw error when choices array is empty', () => {
+      const response = {
+        status: 200,
+        data: {
+          choices: [],
+        },
+      };
+      expect(() => {
+        synthesizer.extractResponseContent(response, 'test');
+      }).toThrow('Invalid response structure in test: choices array is empty');
+    });
+
+    it('should throw error when message is missing', () => {
+      const response = {
+        status: 200,
+        data: {
+          choices: [{}],
+        },
+      };
+      expect(() => {
+        synthesizer.extractResponseContent(response, 'test');
+      }).toThrow('Invalid response structure in test: missing message in first choice');
+    });
+
+    it('should throw error when content is missing', () => {
+      const response = {
+        status: 200,
+        data: {
+          choices: [
+            {
+              message: {},
+            },
+          ],
+        },
+      };
+      expect(() => {
+        synthesizer.extractResponseContent(response, 'test');
+      }).toThrow('Invalid response structure in test: missing or invalid content in message');
+    });
+
+    it('should throw error when content is not a string', () => {
+      const response = {
+        status: 200,
+        data: {
+          choices: [
+            {
+              message: {
+                content: 123,
+              },
+            },
+          ],
+        },
+      };
+      expect(() => {
+        synthesizer.extractResponseContent(response, 'test');
+      }).toThrow('Invalid response structure in test: missing or invalid content in message');
+    });
+
+    it('should include context in error messages', () => {
+      const response = {
+        status: 200,
+        data: {
+          choices: [],
+        },
+      };
+      expect(() => {
+        synthesizer.extractResponseContent(response, 'custom context');
+      }).toThrow('custom context');
+    });
+  });
+
+  describe('Response Validation', () => {
+    describe('generateTidbits', () => {
+      it('should handle empty choices array gracefully', async () => {
+        // Mock axios client to return empty choices array
+        synthesizer.client.post = jest.fn().mockResolvedValue({
+          status: 200,
+          data: {
+            choices: [],
+          },
+        });
+
+        const result = await synthesizer.generateTidbits(
+          'Species data',
+          'Forum data'
+        );
+
+        // Should return empty array due to fallback
+        expect(result).toEqual([]);
+      });
+
+      it('should handle missing choices property gracefully', async () => {
+        // Mock axios client to return response without choices
+        synthesizer.client.post = jest.fn().mockResolvedValue({
+          status: 200,
+          data: {},
+        });
+
+        const result = await synthesizer.generateTidbits(
+          'Species data',
+          'Forum data'
+        );
+
+        // Should return empty array due to fallback
+        expect(result).toEqual([]);
+      });
+
+      it('should handle missing message content gracefully', async () => {
+        // Mock axios client to return response with missing content
+        synthesizer.client.post = jest.fn().mockResolvedValue({
+          status: 200,
+          data: {
+            choices: [
+              {
+                message: {},
+              },
+            ],
+          },
+        });
+
+        const result = await synthesizer.generateTidbits(
+          'Species data',
+          'Forum data'
+        );
+
+        // Should return empty array due to fallback
+        expect(result).toEqual([]);
+      });
+
+      it('should handle null response data gracefully', async () => {
+        // Mock axios client to return null data
+        synthesizer.client.post = jest.fn().mockResolvedValue({
+          status: 200,
+          data: null,
+        });
+
+        const result = await synthesizer.generateTidbits(
+          'Species data',
+          'Forum data'
+        );
+
+        // Should return empty array due to fallback
+        expect(result).toEqual([]);
+      });
+    });
+
+    describe('checkSafety', () => {
+      it('should return safe default when response is invalid', async () => {
+        // Mock axios client to return empty choices array
+        synthesizer.client.post = jest.fn().mockResolvedValue({
+          status: 200,
+          data: {
+            choices: [],
+          },
+        });
+
+        const result = await synthesizer.checkSafety({
+          title: 'Test',
+          body: 'Test body',
+        });
+
+        // Should return default safe response
+        expect(result).toEqual({
+          safe: true,
+          issues: [],
+          confidence: 0.5,
+        });
+      });
+
+      it('should handle missing message content in safety check', async () => {
+        // Mock axios client to return response with missing content
+        synthesizer.client.post = jest.fn().mockResolvedValue({
+          status: 200,
+          data: {
+            choices: [
+              {
+                message: {},
+              },
+            ],
+          },
+        });
+
+        const result = await synthesizer.checkSafety({
+          title: 'Test',
+          body: 'Test body',
+        });
+
+        // Should return default safe response
+        expect(result).toEqual({
+          safe: true,
+          issues: [],
+          confidence: 0.5,
+        });
+      });
+    });
+
+    describe('checkQuality', () => {
+      it('should return default quality when response is invalid', async () => {
+        // Mock axios client to return empty choices array
+        synthesizer.client.post = jest.fn().mockResolvedValue({
+          status: 200,
+          data: {
+            choices: [],
+          },
+        });
+
+        const result = await synthesizer.checkQuality({
+          title: 'Test',
+          body: 'Test body',
+        });
+
+        // Should return default quality response
+        expect(result).toEqual({
+          approved: true,
+          accuracy: 3,
+          appropriateness: 4,
+          interest: 3,
+          clarity: 3,
+        });
+      });
+
+      it('should handle null data in quality check', async () => {
+        // Mock axios client to return null data
+        synthesizer.client.post = jest.fn().mockResolvedValue({
+          status: 200,
+          data: null,
+        });
+
+        const result = await synthesizer.checkQuality({
+          title: 'Test',
+          body: 'Test body',
+        });
+
+        // Should return default quality response
+        expect(result).toEqual({
+          approved: true,
+          accuracy: 3,
+          appropriateness: 4,
+          interest: 3,
+          clarity: 3,
+        });
+      });
     });
   });
 });

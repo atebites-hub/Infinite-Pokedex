@@ -9,8 +9,9 @@
  * @version 1.0.0
  */
 
-const { describe, it, expect, beforeEach } = require('@jest/globals');
-const { SmogonCrawler } = require('../../source/server/crawler/smogon.js');
+import { describe, it, expect, beforeEach } from '@jest/globals';
+import { SmogonCrawler } from '../../source/server/crawler/smogon.js';
+import * as cheerio from 'cheerio';
 
 describe('SmogonCrawler', () => {
   let crawler;
@@ -83,19 +84,19 @@ describe('SmogonCrawler', () => {
     `;
 
     it('should parse strategy name', () => {
-      const $ = require('cheerio').load(mockHtml);
+      const $ = cheerio.load(mockHtml);
       const name = crawler.extractStrategyName($);
       expect(name).toBe('Pikachu');
     });
 
     it('should parse strategy types', () => {
-      const $ = require('cheerio').load(mockHtml);
+      const $ = cheerio.load(mockHtml);
       const types = crawler.extractStrategyTypes($);
       expect(types).toContain('Electric');
     });
 
     it('should parse abilities', () => {
-      const $ = require('cheerio').load(mockHtml);
+      const $ = cheerio.load(mockHtml);
       const abilities = crawler.extractStrategyAbilities($);
       expect(abilities).toHaveLength(1);
       expect(abilities[0].name).toBe('Static');
@@ -103,7 +104,7 @@ describe('SmogonCrawler', () => {
     });
 
     it('should parse moves', () => {
-      const $ = require('cheerio').load(mockHtml);
+      const $ = cheerio.load(mockHtml);
       const moves = crawler.extractStrategyMoves($);
       expect(moves).toHaveLength(1);
       expect(moves[0].name).toBe('Thunderbolt');
@@ -133,7 +134,7 @@ describe('SmogonCrawler', () => {
     `;
 
     it('should parse forum threads', () => {
-      const $ = require('cheerio').load(mockForumHtml);
+      const $ = cheerio.load(mockForumHtml);
       const threads = crawler.extractForumThreads($);
       expect(threads).toHaveLength(1);
       expect(threads[0].title).toBe('Pikachu Discussion');
@@ -141,7 +142,7 @@ describe('SmogonCrawler', () => {
     });
 
     it('should parse forum posts', () => {
-      const $ = require('cheerio').load(mockForumHtml);
+      const $ = cheerio.load(mockForumHtml);
       const posts = crawler.extractForumPosts($);
       expect(posts).toHaveLength(1);
       expect(posts[0].content).toBe('Pikachu is really strong in OU this gen!');
@@ -149,7 +150,7 @@ describe('SmogonCrawler', () => {
     });
 
     it('should extract tidbits from forum content', () => {
-      const $ = require('cheerio').load(mockForumHtml);
+      const $ = cheerio.load(mockForumHtml);
       const tidbits = crawler.extractTidbits($);
       expect(tidbits).toContain('Pikachu is really strong in OU this gen!');
     });
@@ -174,7 +175,7 @@ describe('SmogonCrawler', () => {
     `;
 
     it('should parse search results', () => {
-      const $ = require('cheerio').load(mockSearchHtml);
+      const $ = cheerio.load(mockSearchHtml);
       const results = crawler.extractSearchResults($);
       expect(results).toHaveLength(1);
       expect(results[0].title).toBe('Pikachu OU Analysis');
@@ -184,7 +185,7 @@ describe('SmogonCrawler', () => {
     });
 
     it('should parse discussion results', () => {
-      const $ = require('cheerio').load(mockSearchHtml);
+      const $ = cheerio.load(mockSearchHtml);
       const discussions = crawler.extractDiscussionResults($);
       expect(discussions).toHaveLength(1);
       expect(discussions[0].title).toBe('Pikachu Discussion Thread');
@@ -192,7 +193,7 @@ describe('SmogonCrawler', () => {
     });
 
     it('should extract search tidbits', () => {
-      const $ = require('cheerio').load(mockSearchHtml);
+      const $ = cheerio.load(mockSearchHtml);
       const tidbits = crawler.extractSearchTidbits($);
       expect(tidbits).toContain(
         'Pikachu has great speed and special attack...'
@@ -213,7 +214,7 @@ describe('SmogonCrawler', () => {
   describe('Error handling', () => {
     it('should handle invalid HTML gracefully', () => {
       const invalidHtml = '<html><body>Invalid content</body></html>';
-      const $ = require('cheerio').load(invalidHtml);
+      const $ = cheerio.load(invalidHtml);
 
       expect(() => crawler.extractStrategyName($)).not.toThrow();
       expect(() => crawler.extractStrategyTypes($)).not.toThrow();
@@ -222,7 +223,7 @@ describe('SmogonCrawler', () => {
 
     it('should return empty arrays for missing data', () => {
       const emptyHtml = '<html><body></body></html>';
-      const $ = require('cheerio').load(emptyHtml);
+      const $ = cheerio.load(emptyHtml);
 
       expect(crawler.extractStrategyTypes($)).toEqual([]);
       expect(crawler.extractStrategyAbilities($)).toEqual([]);

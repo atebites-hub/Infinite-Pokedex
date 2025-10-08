@@ -4,8 +4,8 @@
  * Tests schema validation and text sanitization functions
  */
 
-const { describe, it, expect } = require('@jest/globals');
-const {
+import { describe, it, expect } from '@jest/globals';
+import {
   sanitizeText,
   validateSchema,
   validateSpecies,
@@ -14,7 +14,7 @@ const {
   validateEmail,
   validateHash,
   validateVersion,
-} = require('../../source/server/utils/validation.js');
+} from '../../source/server/utils/validation.js';
 
 describe('sanitizeText', () => {
   it('should preserve accented characters in Pokémon names', () => {
