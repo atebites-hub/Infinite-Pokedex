@@ -72,18 +72,20 @@ This document provides a comprehensive sprint-based roadmap for Infinite Pokéde
 **Duration**: 2 weeks  
 **Tasks**:
 
-1. **T**: Set up WebLLM with Qwen3-small model. **C**: From Tech Stack Doc, implement on-device LLM processing. **R**: Use smallest available model; implement progressive loading. **E**: `webllm-worker.js`, model selection, memory management. **I**: Test model loading; verify generation quality.
+1. **T**: Implement incremental tidbit indexing pipeline on the server. **C**: From Backend Structure Doc (updated), crawl sources in Pokédex order, hash normalized content, and only invoke OpenRouter when new or changed pages reference a Pokémon. **R**: Maintain `source_page_id`, dual hashes, entity detection, priority queues; skip irrelevant pages. **E**: `source_pages` registry, `pokemon_source_index`, manifest diff logic. **I**: Dry-run crawl detecting new vs unchanged pages; confirm skipped irrelevant pages stay skipped.
 
-2. **T**: Implement dSpy-style prompt engineering. **C**: From Backend Structure Doc, create prompt templates for lore generation. **R**: Use tidbits and metadata to generate 5-panel narratives. **E**: Prompt templates, context building, response parsing. **I**: Test prompt effectiveness; optimize for quality.
+2. **T**: Deliver client tidbit manifest sync and lore cache policy. **C**: From App Flow Doc + user directive, client must compare manifest revisions and persist lore generations indefinitely. **R**: Implement per-species `tidbit_revision`, incremental downloads, offline bypass, permanent lore caching with quota safeguards, and auto-regenerate lore immediately after sync during app load. **E**: Manifest fetcher, IndexedDB stores `tidbits` + `lore_generations`, regeneration queue. **I**: Simulate online/offline boots; verify lore regenerates when new tidbits arrive and remains cached otherwise.
 
-3. **T**: Build lore generation UI with animations. **C**: From Frontend Guidelines, create Gen 9-style lore panels. **R**: Smooth animations, loading states, error handling. **E**: Lore panel components, generation progress, fallback content. **I**: Test generation flow; verify animation performance.
+3. **T**: Build WebLLM worker with dSpy-style five-panel prompt templates. **C**: From Tech Stack Doc, the worker must load WebLLM `mlc-ai/Qwen3-0.6B-q4f16_0-MLC`; prompts must yield titles + 1–2 sentence panels like the Blastoise example. **R**: Device capability check, progressive weight loading, streamed status events, tear down model after lore generation, deterministic prompt scaffolding with dSpy. **E**: `webllm-worker.js`, prompt builder module, sample outputs. **I**: Measure generation latency on target hardware; adjust templates for coherence.
 
-4. **T**: Implement lore caching and regeneration. **C**: From App Flow Doc, enable infinite regeneration of entries. **R**: Cache generated lore, allow regeneration on demand. **E**: Lore storage, regeneration triggers, cache management. **I**: Test regeneration; verify infinite variety.
+4. **T**: Create lore UI with history browsing and WebSD backgrounds. **C**: From Frontend Guidelines, panels must display generated art and text with Gen 9 aesthetic. **R**: Panel component overlays text on WebSD art, supports regenerate, view history, visual progress indicators, instructs users to check console if generation fails (no fallback). **E**: Lore panel state machine, history modal, error messaging. **I**: Usability review for readability and accessibility; test background contrast.
+
+5. **T**: Establish testing, telemetry, and documentation updates for the lore pipeline. **C**: From Testing Guidelines and Documentation Guidelines, ensure coverage ≥80% and docs stay in sync. **R**: Add unit/integration tests for crawler filters, manifest diffing, worker prompts, cache behavior; document in `/docs/code/` and `/docs/tests/`; ensure console logging suffices for debugging without user fallback. **E**: Test matrix, logging strategy, documentation PR checklist. **I**: Run `/scripts/test-suite.sh` before sprint completion; refine tests for reliability.
 
 **Dependencies**: Sprint 3 (data sync).  
-**Testing**: WebLLM loads successfully, lore generation works, animations smooth, caching effective. Run AI integration tests.  
-**Assumptions**: WebLLM provides Qwen3-small model; device has sufficient memory.  
-**Known Issues**: Low-end devices may struggle with model loading; we implement fallbacks.
+**Testing**: Incremental crawl identifies new pages, manifest diff delivers correct delta, WebLLM worker generates coherent five-panel lore, lore UI renders with history, caching rules respected. Run AI integration tests plus new unit coverage for crawler filters and IndexedDB flows.  
+**Assumptions**: WebLLM serves `mlc-ai/Qwen3-0.6B-q4f16_0-MLC`; devices can cache weights; OpenRouter rate limits allow incremental tidbit updates; server crawl runs on boot only and pages are processed once.  
+**Known Issues**: Low-end devices may struggle with model loading; IndexedDB quota differences could limit lore history; crawler heuristics may need tuning for ambiguous forum posts.
 
 ## Sprint 5: WebSD Integration & Image Generation
 

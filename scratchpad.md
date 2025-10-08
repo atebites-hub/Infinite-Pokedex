@@ -25,12 +25,12 @@ This file serves as the central hub for current task planning, progress tracking
 
 ### Current Sprint: Sprint 4 - WebLLM Integration
 
-**Goal**: Implement on-device lore generation using WebLLM (Qwen3-small)
+**Goal**: Implement on-device lore generation using WebLLM (mlc-ai/Qwen3-0.6B-q4f16_0-MLC)
 
 **Status**: Ready to begin
 
 **Key Tasks**:
-1. [ ] Set up WebLLM and load Qwen3-small model
+1. [ ] Set up WebLLM and load mlc-ai/Qwen3-0.6B-q4f16_0-MLC model
 2. [ ] Create Web Worker for model execution
 3. [ ] Implement prompt engineering with dSpy
 4. [ ] Generate 5-panel "iceberg" lore format
@@ -48,25 +48,79 @@ This file serves as the central hub for current task planning, progress tracking
 
 ## Next Steps (Immediate)
 
-### Sprint 4 Planning
+- Lock in Sprint 4 implementation specs using the confirmed model (WebLLM `mlc-ai/Qwen3-0.6B-q4f16_0-MLC`) and lore caching rules.
+- Document loading-state UX (progress wheel/bar) for lore + artwork generation before storyboarding the UI.
+- Update client sync plan to auto-regenerate lore immediately after tidbit sync (triggered on app load) and reflect boot-only crawler cadence in documentation.
 
-**T**: Set up WebLLM and load Qwen3-small model  
-**C**: From Tech Stack Doc, integrate WebLLM library and select smallest Qwen3 model  
-**R**: Use Web Worker for execution; implement progressive loading; handle model download  
-**E**: `webllm-worker.js`, model initialization, memory monitoring  
-**I**: Test model loading on various devices; verify memory usage
+## Background and Motivation
 
-**T**: Implement prompt engineering with dSpy  
-**C**: From Project Requirements, create prompts that generate 5-panel iceberg lore  
-**R**: Use dSpy for prompt optimization; include metadata and tidbits in context  
-**E**: Prompt templates, context formatting, output parsing  
-**I**: Test prompt quality; iterate based on output coherence
+Sprint 4 is where the Infinite Pokédex finally delivers the “ever-changing lore” promise from `docs/agents/Project Requirements Doc.md`. The user has emphasized that server-generated tidbits are the single source of truth while the client-generated lore must persist indefinitely in IndexedDB. The backend may only generate new tidbits when the crawler uncovers previously unseen or materially changed pages, guarding against redundant OpenRouter usage. This planning pass documents that contract end-to-end so later implementation stays aligned without reinterpretation.
 
-**T**: Create lore generation UI  
-**C**: From Frontend Guidelines, build interface for viewing generated lore  
-**R**: Gen 9 aesthetic; show loading states; handle regeneration  
-**E**: Lore viewer component, loading animations, regenerate button  
-**I**: Test UI responsiveness; verify animations work smoothly
+## Key Challenges and Analysis
+
+- **Meaningful crawl diffs**: HTML noise (ads, layout tweaks) can falsely trigger re-generation. Plan: canonicalize pages (strip boilerplate, normalize whitespace) before hashing; compare both raw and cleaned hashes to balance sensitivity. Counterpoint: over-normalization could miss subtle content edits—mitigate by logging diff samples for manual review during early runs.
+- **Tidbit relevance filtering**: Some pages have zero Pokémon content. We must flag and skip them before OpenRouter calls by checking entity extraction, keyword thresholds, and section metadata. Alternative: rely on embeddings to detect latent references; trade-off is compute cost—worth piloting on high-noise domains.
+- **Lore cache growth vs. storage limits**: User requires lore to persist indefinitely in IndexedDB; we can only prune if quota pressure forces it. Need heuristics to detect quota warnings early and offer manual cleanup without auto-deleting lore.
+- **Client/server cadence**: Crawling occurs on server boot only; each page is processed once for tidbits and never revisited unless newly discovered. We must ensure manifests still surface new species discovered during the initial crawl and rely on best-judgment prioritization while the single pass runs.
+- **Model resource constraints**: Target model is WebLLM `mlc-ai/Qwen3-0.6B-q4f16_0-MLC`. Ensure capability checks and post-generation teardown so WebSD can load afterward. No fallback content; rely on console logging for debugging, so we must instrument logs clearly.
+
+## High-Level Task Breakdown
+
+### Sprint 4 — WebLLM Integration & Lore Pipeline (Planning)
+
+1. **T**: Architect server tidbit indexing and incremental crawl workflow.  
+   **C**: `docs/agents/Backend Structure Doc.md` + new user requirements demand per-page slugging, content hashing, and Pokémon relevance filtering before OpenRouter.  
+   **R**: Maintain `source_page_id`, raw + normalized hashes, entity detection, skip low-value pages, queue high-priority domains first.  
+   **E**: Flowchart covering crawl → parse → filter → OpenRouter → manifest diff.  
+   **I**: Validate heuristics against noisy forums; iterate threshold logic before coding.
+
+2. **T**: Define client tidbit manifest sync and lore cache retention policy.  
+   **C**: `docs/agents/App Flow Doc.md` mandates offline-first behavior with lore persistence.  
+   **R**: Specify manifest schema (`tidbit_revision` per species), incremental downloads, offline bypass, regeneration triggers, permanent lore caching (prune only under quota pressure). Auto-regenerate lore immediately after manifest sync during app load.  
+   **E**: Sequence diagram for app load (online/offline), highlighting IndexedDB updates, regeneration queue kickoff, and progress indicator states.  
+   **I**: Stress-test plan against quota constraints; adjust manual cleanup UX accordingly.
+
+3. **T**: Formalize WebLLM worker interface and dSpy-style prompt templates.  
+   **C**: `docs/agents/Tech Stack Doc.md` enforces worker usage; user provided exemplar Blastoise panels.  
+   **R**: Worker loads WebLLM `mlc-ai/Qwen3-0.6B-q4f16_0-MLC`, streams status updates (progress wheel), applies dSpy prompt optimization, and tears down weights after lore is generated so WebSD can load.  
+   **E**: Prompt schema + sample response for Blastoise shaped like “Living Tank → Silent Guardian,” including dSpy module wiring.  
+   **I**: Run mock prompts with sample tidbits to tune context packing before implementation.
+
+4. **T**: Plan lore UI/UX with WebSD artwork integration and history browsing.  
+   **C**: `docs/agents/Frontend Guidelines.md` requires Gen 9 styling and panel artwork backgrounds.  
+   **R**: Panel component overlays text on WebSD art, ensures readability, exposes regenerate + history controls, surfaces visual progress indicators for lore/image stages, and handles lite mode by instructing users to check console when failures occur.  
+   **E**: State machine (`idle → generating → cached → history`) and wireframe sketches.  
+   **I**: Evaluate accessibility (contrast, screen readers) and adjust plan iteratively.
+
+5. **T**: Outline testing, telemetry, and documentation updates.  
+   **C**: `docs/agents/Testing Guidelines.md` + documentation rules require coverage and doc parity.  
+   **R**: Draft test matrix (server filters, manifest diffing, worker prompts, cache ops), logging guidelines (ensure console logs expose failures since there is no user-facing fallback), doc updates for `/docs/code/*` and `/docs/tests/*`.  
+   **E**: Table enumerating unit/integration scenarios and expected commands.  
+   **I**: Refine matrix post-implementation to ensure ≥80% coverage and recorded lessons.
+
+## Current Status / Progress Tracking
+
+- Sprint 4 planning underway — tidbit/lore pipeline requirements captured; awaiting implementation kickoff after documentation updates.
+
+## Project Status Board
+
+- [ ] Sprint 4 — Server tidbit indexing & manifest design (planning)
+- [ ] Sprint 4 — Client sync & lore cache policy (planning)
+- [ ] Sprint 4 — WebLLM worker prompt spec (planning)
+- [ ] Sprint 4 — Lore UI/UX + regeneration planning (planning)
+- [ ] Sprint 4 — Test & documentation strategy (planning)
+
+## Agent Feedback & Assistance Requests
+
+### Current Blockers
+- None; ready to proceed once outstanding clarifications resolved.
+
+### Questions for User
+### Questions for User
+- None pending.
+
+### Technical Decisions Needed
+1. Telemetry scope: allow local anonymized timing logs for debugging, or restrict to dev builds?
 
 ## Pending Sprints
 

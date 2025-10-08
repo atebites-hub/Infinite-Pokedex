@@ -6,13 +6,12 @@ This document defines the server‑side architecture, data models, pipelines, an
 
 The backend is a Node.js service that runs a controlled crawler + synthesis pipeline on startup (or via a scheduled job) and publishes a static, versioned dataset to a CDN. Clients never send PII nor require authentication; all heavy lifting (tidbit synthesis) is performed server‑side once, while entry‑specific lore is generated client‑side by WebLLM.
 
-Components
-
-- Crawler: respectful scraping of Bulbapedia, Serebii, Marilland, and selected forums
-- Parser/Normalizer: transforms raw HTML into canonical Pokémon metadata schema
-- Tidbit Synthesizer: distills forum/theory content into concise “iceberg” items via OpenRouter LLM
-- Build & Publisher: emits versioned JSON bundles + media to CDN
-- Cache Store: local disk cache to avoid re‑fetching; fingerprinted by URL + content hash
+- Crawler: respectful scraping of Bulbapedia, Serebii, Marilland, and selected forums with incremental change detection and priority queues
+- Parser/Normalizer: transforms raw HTML into canonical Pokémon metadata schema after boilerplate stripping
+- Tidbit Synthesizer: distills forum/theory content into concise “iceberg” items via OpenRouter LLM when new relevant material is discovered
+- Build & Publisher: emits versioned JSON bundles + manifest deltas to CDN
+- Cache Store: local disk cache to avoid re-fetching; fingerprinted by URL + dual content hashes (raw + normalized)
+- Model Orchestrator: ensures WebLLM `mlc-ai/Qwen3-0.6B-q4f16_0-MLC` is used for tidbit prompt tuning alignment and exposes metadata for client-side provenance
 
 Mermaid Diagram
 
@@ -83,20 +82,32 @@ Validation Rules
 
 ## Crawler Design
 
-- Robots Compliance: Respect `robots.txt`; maintain allowlists per domain; rate‑limit requests; use caching and ETags
-- Fetch Strategy: Deterministic URL schedule by species; retries with exponential backoff; circuit‑breakers per domain
-- Parsers: Domain‑specific extractors convert HTML → structured fields; sanitized and normalized
-- Logging: Structured logs with species id, URL, duration, bytes; error classification
+- Robots Compliance: Respect `robots.txt`; maintain allowlists per domain; rate-limit requests; use caching and ETags
+- Fetch Strategy: Deterministic URL schedule by species with priority bias toward lore-heavy forums; retries with exponential backoff; circuit-breakers per domain
+- Content Fingerprinting: Maintain `source_page_id` per URL, store both raw HTML hash and normalized-content hash (boilerplate stripped, whitespace normalized). Only reprocess when either hash changes.
+- Entity Detection: Run Pokémon entity extraction (exact match, aliases, embeddings) on normalized content. Pages lacking Pokémon references are tagged `irrelevant` and skipped for tidbit synthesis.
+- Parsers: Domain-specific extractors convert HTML → structured fields; sanitized and normalized before hashing
+- Page Valuation: Assign heuristic scores (e.g., forum lore sections > general wiki pages). When bandwidth is constrained, crawl high-value sources first.
+- Logging: Structured logs with species id, URL, duration, bytes, hash state (`new`, `changed`, `unchanged`); include reasons for exclusion (e.g., “no entities”)
 
 Edge Handling
 
 - Missing pages: Mark fields partial; include `sources.missing` notes
-- Duplicates: De‑dupe by canonical URL
+- Duplicates: De-dupe by canonical URL
+- No-Pokémon Pages: Persist crawl metadata with `irrelevant` flag so future runs avoid re-sending to OpenRouter unless content hashes change and entity detection succeeds
 - Internationalization: Prefer English pages for MVP; schema supports `locale` extension later
 
-## Tidbit Synthesis (Server‑Side)
+## Incremental Crawl & Tidbit Indexing
 
-Input: tokenized/cleaned forum posts, wiki trivia sections, theory pages. The synthesizer composes a prompt instructing an LLM (via OpenRouter) to output 3–7 concise iceberg items, each with a title and 1–3 sentences, citing source refs (ids to scraped docs). We apply profanity and safety filters; items failing safety are dropped.
+- Source Registry: `source_pages` table maintains `{ source_page_id, url, raw_hash, normalized_hash, first_seen_at, last_crawled_at, last_tidbit_payload_hash, relevance_flag }`.
+- Species Mapping: `pokemon_source_index` maps `pokemon_id` → array of `source_page_id` with relevance scores to guide RAG context creation.
+- Change Detection: When a crawl produces a new normalized hash, enqueue affected Pokémon for tidbit regeneration. Unchanged pages retain their previous tidbit associations.
+- Manifest Generation: Build a `tidbit-manifest.json` containing global `manifest_version`, per-Pokémon `tidbit_revision`, list of new/updated `tidbit_id`s, and summary of new `source_page_id`s. Clients diff against this manifest to download incremental updates only.
+- Scheduler: Crawl + diff pipeline executes when the server boots. Each newly discovered page is processed once; previously indexed pages aren’t revisited unless explicitly reintroduced.
+
+## Tidbit Synthesis (Server-Side)
+
+Input: tokenized/cleaned forum posts, wiki trivia sections, theory pages flagged as relevant by the crawl. The synthesizer composes a prompt instructing an LLM (via OpenRouter) to output 3–7 concise iceberg items, each with a title and 1–3 sentences, citing source refs (ids to scraped docs). We apply profanity and safety filters; items failing safety are dropped.
 
 Output Example
 
@@ -114,7 +125,9 @@ Output Example
 
 Caching & Idempotency
 
-- For each species, store the prompt, model id, and response hash. Reuse unless inputs change.
+- For each species, store the prompt, model id, and response hash alongside `source_page_id` + `normalized_hash` references. Reuse unless inputs change.
+- Persist `tidbit_id`, `pokemon_id`, `source_page_id`, `source_hash`, `generated_at`, and `quality_score`. Manifest increments `tidbit_revision` only when the response hash differs from the prior accepted batch.
+- Store a `source_tidbit_index` so we know which tidbits each page has already influenced; prevents re-sending unchanged content through OpenRouter even if crawled multiple times.
 
 ## Build & Publish Pipeline
 
