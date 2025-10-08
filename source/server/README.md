@@ -5,6 +5,7 @@ Node.js crawler and data processing pipeline for the Infinite Pokédex Progressi
 ## Overview
 
 The server component handles:
+
 - Respectful web crawling of Bulbapedia and Serebii
 - HTML parsing and data normalization
 - LLM-powered tidbit synthesis via OpenRouter
@@ -13,17 +14,20 @@ The server component handles:
 ## Quick Start
 
 1. **Install dependencies:**
+
    ```bash
    npm install
    ```
 
 2. **Configure environment:**
+
    ```bash
    cp .env.example .env
    # Edit .env with your API keys and CDN settings
    ```
 
 3. **Test the server:**
+
    ```bash
    node test-server.js
    ```
@@ -80,7 +84,7 @@ await server.initialize();
 
 const result = await server.runPipeline({
   species: [1, 2, 3],
-  dryRun: true
+  dryRun: true,
 });
 ```
 
@@ -106,6 +110,7 @@ const result = await server.runPipeline({
 ## Rate Limiting
 
 The server implements respectful crawling with:
+
 - Robots.txt compliance checking
 - Rate limiting per domain
 - Exponential backoff on errors

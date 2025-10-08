@@ -2,10 +2,10 @@
 
 /**
  * Infinite Pokédex Server
- * 
+ *
  * Main entry point for the Node.js crawler and data processing pipeline.
  * Handles web scraping, data normalization, tidbit synthesis, and CDN publishing.
- * 
+ *
  * @fileoverview Server entry point for Infinite Pokédex crawler system
  * @author Infinite Pokédex Team
  * @version 1.0.0
@@ -48,12 +48,13 @@ class InfinitePokedexServer {
       rateLimit: parseInt(process.env.CRAWL_RATE_LIMIT) || 1000, // requests per minute
       openRouterApiKey: process.env.OPENROUTER_API_KEY,
       cdnBucketUrl: process.env.CDN_BUCKET_URL,
-      userAgent: 'InfinitePokedexBot/1.0 (+https://github.com/infinite-pokedex)',
+      userAgent:
+        'InfinitePokedexBot/1.0 (+https://github.com/infinite-pokedex)',
       maxRetries: 3,
       retryDelay: 1000, // milliseconds
       cacheDir: join(__dirname, 'data', 'cache'),
       outputDir: join(__dirname, 'data', 'output'),
-      tempDir: join(__dirname, 'data', 'temp')
+      tempDir: join(__dirname, 'data', 'temp'),
     };
   }
 
@@ -95,7 +96,7 @@ class InfinitePokedexServer {
       const {
         species = [], // Array of species IDs to crawl
         skipCache = false,
-        dryRun = false
+        dryRun = false,
       } = options;
 
       // Step 1: Crawl data from sources
@@ -117,7 +118,6 @@ class InfinitePokedexServer {
 
       logger.info('Pipeline completed successfully');
       return dataset;
-
     } catch (error) {
       logger.error('Pipeline failed:', error);
       throw error;
@@ -136,20 +136,25 @@ class InfinitePokedexServer {
     for (const [source, crawler] of this.crawlers) {
       try {
         logger.info(`Crawling ${source}...`);
-        
+
         let data;
         if (source === 'smogon') {
           // Smogon needs different handling - crawl strategy pages and forums
-          const strategyData = await this.crawlSmogonStrategy(species, skipCache);
+          const strategyData = await this.crawlSmogonStrategy(
+            species,
+            skipCache
+          );
           const forumData = await this.crawlSmogonForums(species, skipCache);
           data = { strategy: strategyData, forums: forumData };
         } else {
           // Standard crawling for Bulbapedia and Serebii
           data = await crawler.crawl(species, skipCache);
         }
-        
+
         results[source] = data;
-        logger.info(`Crawled ${Object.keys(data).length} entries from ${source}`);
+        logger.info(
+          `Crawled ${Object.keys(data).length} entries from ${source}`
+        );
       } catch (error) {
         logger.error(`Failed to crawl ${source}:`, error);
         // Continue with other sources
@@ -174,11 +179,16 @@ class InfinitePokedexServer {
       try {
         // Convert species ID to name for Smogon
         const speciesName = await this.getSpeciesName(speciesId);
-        const result = await smogonCrawler.crawlStrategyPokemon(speciesName, { skipCache });
+        const result = await smogonCrawler.crawlStrategyPokemon(speciesName, {
+          skipCache,
+        });
         results.push(result);
       } catch (error) {
         errors.push({ speciesId, error: error.message });
-        logger.warn(`Failed to crawl Smogon strategy for ${speciesId}:`, error.message);
+        logger.warn(
+          `Failed to crawl Smogon strategy for ${speciesId}:`,
+          error.message
+        );
       }
     }
 
@@ -199,11 +209,16 @@ class InfinitePokedexServer {
     for (const speciesId of species) {
       try {
         const speciesName = await this.getSpeciesName(speciesId);
-        const result = await smogonCrawler.searchForumDiscussions(speciesName, { skipCache });
+        const result = await smogonCrawler.searchForumDiscussions(speciesName, {
+          skipCache,
+        });
         results.push(result);
       } catch (error) {
         errors.push({ speciesId, error: error.message });
-        logger.warn(`Failed to crawl Smogon forums for ${speciesId}:`, error.message);
+        logger.warn(
+          `Failed to crawl Smogon forums for ${speciesId}:`,
+          error.message
+        );
       }
     }
 
@@ -221,7 +236,7 @@ class InfinitePokedexServer {
     if (typeof speciesId === 'string') {
       return speciesId;
     }
-    
+
     // Convert ID to name (this would be more sophisticated in practice)
     const speciesNames = {
       1: 'bulbasaur',
@@ -232,7 +247,7 @@ class InfinitePokedexServer {
       6: 'charizard',
       // ... more mappings would be needed
     };
-    
+
     return speciesNames[speciesId] || `pokemon-${speciesId}`;
   }
 
@@ -250,8 +265,8 @@ class InfinitePokedexServer {
         processor: !!this.processor,
         synthesizer: !!this.synthesizer,
         builder: !!this.builder,
-        publisher: !!this.publisher
-      }
+        publisher: !!this.publisher,
+      },
     };
   }
 }
@@ -259,20 +274,22 @@ class InfinitePokedexServer {
 // CLI interface
 // Use import.meta.url to detect if this module is being run directly
 // This is more reliable than comparing process.argv paths
-const isMainModule = import.meta.url === `file://${process.argv[1]}` || 
-                      (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1]));
+const isMainModule =
+  import.meta.url === `file://${process.argv[1]}` ||
+  (process.argv[1] &&
+    fileURLToPath(import.meta.url) === resolve(process.argv[1]));
 
 if (isMainModule) {
   const server = new InfinitePokedexServer();
-  
+
   // Handle command line arguments
   const args = process.argv.slice(2);
   const options = {};
-  
+
   for (let i = 0; i < args.length; i++) {
     switch (args[i]) {
       case '--species':
-        options.species = args[++i]?.split(',').map(id => parseInt(id)) || [];
+        options.species = args[++i]?.split(',').map((id) => parseInt(id)) || [];
         break;
       case '--skip-cache':
         options.skipCache = true;

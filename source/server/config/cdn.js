@@ -1,9 +1,9 @@
 /**
  * CDN Configuration
- * 
+ *
  * Defines CDN upload settings, bucket configurations, and publishing policies.
  * Supports multiple CDN providers with consistent interface.
- * 
+ *
  * @fileoverview CDN configuration and publishing settings
  * @author Infinite Pokédex Team
  * @version 1.0.0
@@ -20,7 +20,7 @@ export const cdnProviders = {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
     cloudFrontDistributionId: process.env.AWS_CLOUDFRONT_DISTRIBUTION_ID,
-    endpoint: null // Use default AWS endpoints
+    endpoint: null, // Use default AWS endpoints
   },
 
   cloudflare: {
@@ -29,15 +29,15 @@ export const cdnProviders = {
     region: 'auto',
     accessKeyId: process.env.CF_R2_ACCESS_KEY_ID,
     secretAccessKey: process.env.CF_R2_SECRET_ACCESS_KEY,
-    endpoint: process.env.CF_R2_ENDPOINT
+    endpoint: process.env.CF_R2_ENDPOINT,
   },
 
   vercel: {
     name: 'Vercel Blob',
     bucket: process.env.VERCEL_BLOB_BUCKET,
     token: process.env.VERCEL_BLOB_TOKEN,
-    endpoint: 'https://api.vercel.com'
-  }
+    endpoint: 'https://api.vercel.com',
+  },
 };
 
 /**
@@ -50,7 +50,7 @@ export const defaultConfig = {
     retries: 3,
     timeout: 30000, // 30 seconds
     chunkSize: 5 * 1024 * 1024, // 5MB
-    compression: true
+    compression: true,
   },
 
   // Cache settings
@@ -58,20 +58,20 @@ export const defaultConfig = {
     // Static assets (images, JSON)
     static: {
       'Cache-Control': 'public, max-age=31536000, immutable',
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
     },
-    
+
     // Dynamic content (index files)
     dynamic: {
       'Cache-Control': 'public, max-age=60, must-revalidate',
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
     },
 
     // Version files
     version: {
       'Cache-Control': 'public, max-age=300, must-revalidate',
-      'Content-Type': 'application/json'
-    }
+      'Content-Type': 'application/json',
+    },
   },
 
   // Security headers
@@ -79,7 +79,7 @@ export const defaultConfig = {
     'X-Content-Type-Options': 'nosniff',
     'X-Frame-Options': 'DENY',
     'X-XSS-Protection': '1; mode=block',
-    'Referrer-Policy': 'strict-origin-when-cross-origin'
+    'Referrer-Policy': 'strict-origin-when-cross-origin',
   },
 
   // CORS settings
@@ -87,8 +87,8 @@ export const defaultConfig = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, If-None-Match',
-    'Access-Control-Max-Age': '86400'
-  }
+    'Access-Control-Max-Age': '86400',
+  },
 };
 
 /**
@@ -98,32 +98,32 @@ export const fileTypes = {
   json: {
     contentType: 'application/json',
     compression: true,
-    cacheControl: 'public, max-age=31536000, immutable'
+    cacheControl: 'public, max-age=31536000, immutable',
   },
-  
+
   png: {
     contentType: 'image/png',
     compression: false,
-    cacheControl: 'public, max-age=31536000, immutable'
+    cacheControl: 'public, max-age=31536000, immutable',
   },
-  
+
   jpg: {
     contentType: 'image/jpeg',
     compression: false,
-    cacheControl: 'public, max-age=31536000, immutable'
+    cacheControl: 'public, max-age=31536000, immutable',
   },
-  
+
   webp: {
     contentType: 'image/webp',
     compression: false,
-    cacheControl: 'public, max-age=31536000, immutable'
+    cacheControl: 'public, max-age=31536000, immutable',
   },
-  
+
   svg: {
     contentType: 'image/svg+xml',
     compression: true,
-    cacheControl: 'public, max-age=31536000, immutable'
-  }
+    cacheControl: 'public, max-age=31536000, immutable',
+  },
 };
 
 /**
@@ -135,34 +135,30 @@ export const publishingStrategy = {
     enabled: true,
     tempPrefix: 'temp/',
     finalPrefix: 'v',
-    aliasName: 'latest'
+    aliasName: 'latest',
   },
 
   // Version management
   versioning: {
     format: 'YYYYMMDD-HHMM',
     maxVersions: 10,
-    cleanupOldVersions: true
+    cleanupOldVersions: true,
   },
 
   // Rollback support
   rollback: {
     enabled: true,
     maxRollbackVersions: 5,
-    rollbackDelay: 5000 // 5 seconds
+    rollbackDelay: 5000, // 5 seconds
   },
 
   // Health checks
   healthCheck: {
     enabled: true,
-    endpoints: [
-      '/species/index.json',
-      '/species/1.json',
-      '/images/base/1.png'
-    ],
+    endpoints: ['/species/index.json', '/species/1.json', '/images/base/1.png'],
     timeout: 10000,
-    retries: 3
-  }
+    retries: 3,
+  },
 };
 
 /**
@@ -183,9 +179,9 @@ export function getCDNConfig(provider = 'aws') {
     ...(provider === 'aws' && {
       upload: {
         ...defaultConfig.upload,
-        region: providerConfig.region
-      }
-    })
+        region: providerConfig.region,
+      },
+    }),
   };
 }
 
@@ -197,13 +193,13 @@ export function getCDNConfig(provider = 'aws') {
 export function getFileConfig(filename) {
   const extension = filename.split('.').pop().toLowerCase();
   const config = fileTypes[extension];
-  
+
   if (!config) {
     // Default configuration for unknown file types
     return {
       contentType: 'application/octet-stream',
       compression: false,
-      cacheControl: 'public, max-age=3600'
+      cacheControl: 'public, max-age=3600',
     };
   }
 
@@ -220,7 +216,7 @@ export function getFileConfig(filename) {
 export function generateCDNUrl(baseUrl, version, path) {
   // Remove leading slash from path
   const cleanPath = path.startsWith('/') ? path.slice(1) : path;
-  
+
   // Construct URL with version
   return `${baseUrl}/${version}/${cleanPath}`;
 }
@@ -245,7 +241,7 @@ export function validateCDNConfig(config) {
   const result = {
     valid: true,
     errors: [],
-    warnings: []
+    warnings: [],
   };
 
   // Check required fields

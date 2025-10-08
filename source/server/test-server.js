@@ -2,9 +2,9 @@
 
 /**
  * Server Test Script
- * 
+ *
  * Simple test script to verify server functionality and demonstrate usage.
- * 
+ *
  * @fileoverview Server testing and demonstration
  * @author Infinite Pokédex Team
  * @version 1.0.0
@@ -30,20 +30,21 @@ async function testServer() {
 
     // Test with a small dataset (dry run)
     const testSpecies = [1, 2, 3]; // Bulbasaur, Ivysaur, Venusaur
-    
+
     logger.info(`Testing with species: ${testSpecies.join(', ')}`);
-    
+
     const result = await server.runPipeline({
       species: testSpecies,
       dryRun: true, // Don't actually publish to CDN
-      skipCache: false
+      skipCache: false,
     });
 
     logger.info('Test completed successfully!');
-    logger.info(`Processed ${Object.keys(result.species || {}).length} species`);
-    
-    return result;
+    logger.info(
+      `Processed ${Object.keys(result.species || {}).length} species`
+    );
 
+    return result;
   } catch (error) {
     logger.error('Server test failed:', error);
     throw error;
@@ -62,7 +63,7 @@ async function testComponents() {
     const bulbapediaConfig = getSourceConfig('bulbapedia');
     logger.info('Bulbapedia config loaded:', {
       baseUrl: bulbapediaConfig.baseUrl,
-      rateLimit: bulbapediaConfig.rateLimit.requestsPerMinute
+      rateLimit: bulbapediaConfig.rateLimit.requestsPerMinute,
     });
 
     // Test model configuration
@@ -70,7 +71,7 @@ async function testComponents() {
     const modelConfig = getModelConfig('tidbitSynthesis');
     logger.info('Model config loaded:', {
       model: modelConfig.model,
-      maxTokens: modelConfig.maxTokens
+      maxTokens: modelConfig.maxTokens,
     });
 
     // Test CDN configuration
@@ -78,11 +79,10 @@ async function testComponents() {
     const cdnConfig = getCDNConfig('aws');
     logger.info('CDN config loaded:', {
       uploadConcurrency: cdnConfig.upload.concurrency,
-      cacheControl: cdnConfig.cache.static['Cache-Control']
+      cacheControl: cdnConfig.cache.static['Cache-Control'],
     });
 
     logger.info('Component tests completed successfully!');
-
   } catch (error) {
     logger.error('Component test failed:', error);
     throw error;
@@ -95,10 +95,10 @@ async function testComponents() {
 async function main() {
   try {
     logger.info('=== Infinite Pokédex Server Test ===');
-    
+
     // Test components first
     await testComponents();
-    
+
     // Test full server if environment variables are set
     if (process.env.OPENROUTER_API_KEY && process.env.CDN_BUCKET_URL) {
       await testServer();
@@ -110,7 +110,6 @@ async function main() {
     }
 
     logger.info('=== All tests completed successfully! ===');
-
   } catch (error) {
     logger.error('Test suite failed:', error);
     process.exit(1);

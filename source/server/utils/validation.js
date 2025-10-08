@@ -1,9 +1,9 @@
 /**
  * Schema Validation Utilities
- * 
+ *
  * Provides schema validation for Pokémon data and API responses
  * to ensure data integrity and consistency.
- * 
+ *
  * @fileoverview Schema validation utilities
  * @author Infinite Pokédex Team
  * @version 1.0.0
@@ -19,12 +19,12 @@ export function validateSchema(data, schema) {
   const result = {
     valid: true,
     errors: [],
-    warnings: []
+    warnings: [],
   };
 
   for (const [field, rules] of Object.entries(schema)) {
     const value = data[field];
-    
+
     // Check required fields
     if (rules.required && (value === undefined || value === null)) {
       result.valid = false;
@@ -40,27 +40,53 @@ export function validateSchema(data, schema) {
     // Check type
     if (rules.type && !checkType(value, rules.type)) {
       result.valid = false;
-      result.errors.push(`Field ${field} has invalid type: expected ${rules.type}, got ${typeof value}`);
+      result.errors.push(
+        `Field ${field} has invalid type: expected ${rules.type}, got ${typeof value}`
+      );
       continue;
     }
 
     // Check array length
-    if (rules.type === 'array' && rules.maxLength && value.length > rules.maxLength) {
-      result.warnings.push(`Field ${field} exceeds maximum length: ${value.length} > ${rules.maxLength}`);
+    if (
+      rules.type === 'array' &&
+      rules.maxLength &&
+      value.length > rules.maxLength
+    ) {
+      result.warnings.push(
+        `Field ${field} exceeds maximum length: ${value.length} > ${rules.maxLength}`
+      );
     }
 
     // Check string length
-    if (rules.type === 'string' && rules.maxLength && value.length > rules.maxLength) {
-      result.warnings.push(`Field ${field} exceeds maximum length: ${value.length} > ${rules.maxLength}`);
+    if (
+      rules.type === 'string' &&
+      rules.maxLength &&
+      value.length > rules.maxLength
+    ) {
+      result.warnings.push(
+        `Field ${field} exceeds maximum length: ${value.length} > ${rules.maxLength}`
+      );
     }
 
     // Check numeric bounds
-    if (rules.type === 'number' && rules.min !== undefined && value < rules.min) {
-      result.warnings.push(`Field ${field} below minimum value: ${value} < ${rules.min}`);
+    if (
+      rules.type === 'number' &&
+      rules.min !== undefined &&
+      value < rules.min
+    ) {
+      result.warnings.push(
+        `Field ${field} below minimum value: ${value} < ${rules.min}`
+      );
     }
 
-    if (rules.type === 'number' && rules.max !== undefined && value > rules.max) {
-      result.warnings.push(`Field ${field} above maximum value: ${value} > ${rules.max}`);
+    if (
+      rules.type === 'number' &&
+      rules.max !== undefined &&
+      value > rules.max
+    ) {
+      result.warnings.push(
+        `Field ${field} above maximum value: ${value} > ${rules.max}`
+      );
     }
   }
 
@@ -84,7 +110,9 @@ function checkType(value, expectedType) {
     case 'array':
       return Array.isArray(value);
     case 'object':
-      return typeof value === 'object' && value !== null && !Array.isArray(value);
+      return (
+        typeof value === 'object' && value !== null && !Array.isArray(value)
+      );
     default:
       return true;
   }
@@ -105,7 +133,7 @@ export function validateSpecies(species) {
     abilities: { type: 'array', maxLength: 10 },
     moves: { type: 'array', maxLength: 512 },
     tidbits: { type: 'array', maxLength: 10 },
-    sources: { type: 'object', required: true }
+    sources: { type: 'object', required: true },
   };
 
   return validateSchema(species, schema);
@@ -121,7 +149,7 @@ export function validateTidbit(tidbit) {
     title: { type: 'string', required: true, maxLength: 100 },
     body: { type: 'string', required: true, maxLength: 500 },
     sourceRefs: { type: 'array', maxLength: 5 },
-    quality: { type: 'object' }
+    quality: { type: 'object' },
   };
 
   return validateSchema(tidbit, schema);
@@ -137,7 +165,7 @@ export function validateMetadata(metadata) {
     totalSpecies: { type: 'number', required: true, min: 0 },
     totalTidbits: { type: 'number', min: 0 },
     sources: { type: 'array' },
-    contentHash: { type: 'string', required: true }
+    contentHash: { type: 'string', required: true },
   };
 
   return validateSchema(metadata, schema);

@@ -1,10 +1,10 @@
 /**
  * Base Crawler Class
- * 
+ *
  * Provides foundational crawling functionality with rate limiting, retry logic,
  * robots.txt compliance, and circuit breaker patterns. All specific crawlers
  * extend this base class.
- * 
+ *
  * @fileoverview Base crawler implementation with rate limiting and safety
  * @author Infinite Pokédex Team
  * @version 1.0.0
@@ -30,13 +30,13 @@ export class BaseCrawler {
     this.circuitBreaker = new CircuitBreaker(this.config.circuitBreaker);
     this.cache = new CacheManager(this.config.cache);
     this.robotsCache = new Map();
-    
+
     // Initialize HTTP client
     this.client = axios.create({
       timeout: this.config.request.timeout,
       headers: this.config.request.headers,
       maxRedirects: 5,
-      validateStatus: (status) => status < 500 // Don't throw on 4xx
+      validateStatus: (status) => status < 500, // Don't throw on 4xx
     });
 
     // Add request interceptor for rate limiting
@@ -68,7 +68,7 @@ export class BaseCrawler {
   async checkRobotsTxt(url) {
     try {
       const domain = new URL(url).origin;
-      
+
       // Check cache first
       if (this.robotsCache.has(domain)) {
         const robots = this.robotsCache.get(domain);
@@ -78,7 +78,7 @@ export class BaseCrawler {
       // Fetch robots.txt
       const robotsUrl = `${domain}/robots.txt`;
       const response = await this.client.get(robotsUrl);
-      
+
       if (response.status === 200) {
         const robots = new RobotsParser(response.data);
         this.robotsCache.set(domain, robots);
@@ -103,7 +103,7 @@ export class BaseCrawler {
     const {
       skipCache = false,
       usePuppeteer = false,
-      waitForSelector = null
+      waitForSelector = null,
     } = options;
 
     try {
@@ -143,7 +143,7 @@ export class BaseCrawler {
         headers: response.headers,
         data: response.data,
         timestamp: new Date().toISOString(),
-        size: response.data.length
+        size: response.data.length,
       };
 
       // Cache successful response
@@ -155,11 +155,10 @@ export class BaseCrawler {
       this.circuitBreaker.recordSuccess();
 
       return result;
-
     } catch (error) {
       // Update circuit breaker
       this.circuitBreaker.recordFailure();
-      
+
       logger.error(`Failed to crawl ${url}:`, error.message);
       throw error;
     }
@@ -179,7 +178,7 @@ export class BaseCrawler {
     // Process URLs in batches
     for (let i = 0; i < urls.length; i += concurrency) {
       const batch = urls.slice(i, i + concurrency);
-      
+
       const promises = batch.map(async (url) => {
         try {
           const result = await this.crawlUrl(url, crawlOptions);
@@ -190,7 +189,7 @@ export class BaseCrawler {
       });
 
       const batchResults = await Promise.all(promises);
-      
+
       for (const batchResult of batchResults) {
         if (batchResult.success) {
           results.push(batchResult.result);
@@ -200,7 +199,9 @@ export class BaseCrawler {
       }
 
       // Log progress
-      logger.info(`Crawled ${Math.min(i + concurrency, urls.length)}/${urls.length} URLs`);
+      logger.info(
+        `Crawled ${Math.min(i + concurrency, urls.length)}/${urls.length} URLs`
+      );
     }
 
     if (errors.length > 0) {
@@ -217,7 +218,7 @@ export class BaseCrawler {
    */
   shouldRetry(error) {
     if (!error.response) return false;
-    
+
     const status = error.response.status;
     return this.config.retry.retryableStatusCodes.includes(status);
   }
@@ -234,9 +235,11 @@ export class BaseCrawler {
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       const delay = Math.min(baseDelay * Math.pow(2, attempt - 1), maxDelay);
-      
-      logger.debug(`Retrying request in ${delay}ms (attempt ${attempt}/${maxRetries})`);
-      await new Promise(resolve => setTimeout(resolve, delay));
+
+      logger.debug(
+        `Retrying request in ${delay}ms (attempt ${attempt}/${maxRetries})`
+      );
+      await new Promise((resolve) => setTimeout(resolve, delay));
 
       try {
         return await this.client(config);
@@ -293,33 +296,40 @@ class RateLimiter {
    */
   async wait() {
     const now = Date.now();
-    
+
     // Refill burst tokens
     const timeSinceRefill = now - this.lastRefill;
-    const tokensToAdd = (timeSinceRefill / 1000) * this.config.requestsPerSecond;
-    this.burstTokens = Math.min(this.burstTokens + tokensToAdd, this.config.burstLimit);
+    const tokensToAdd =
+      (timeSinceRefill / 1000) * this.config.requestsPerSecond;
+    this.burstTokens = Math.min(
+      this.burstTokens + tokensToAdd,
+      this.config.burstLimit
+    );
     this.lastRefill = now;
 
     // Check burst limit
     if (this.burstTokens <= 0) {
       const waitTime = 1000 / this.config.requestsPerSecond;
-      await new Promise(resolve => setTimeout(resolve, waitTime));
+      await new Promise((resolve) => setTimeout(resolve, waitTime));
       // Don't decrement burstTokens when it's already zero or negative
       // Just refill after waiting
-      this.burstTokens = Math.min(this.config.requestsPerSecond, this.config.burstLimit);
+      this.burstTokens = Math.min(
+        this.config.requestsPerSecond,
+        this.config.burstLimit
+      );
     } else {
       this.burstTokens--;
     }
 
     // Check minute limit
     const minuteAgo = now - 60000;
-    this.requests = this.requests.filter(time => time > minuteAgo);
-    
+    this.requests = this.requests.filter((time) => time > minuteAgo);
+
     if (this.requests.length >= this.config.requestsPerMinute) {
       const oldestRequest = Math.min(...this.requests);
       const waitTime = 60000 - (now - oldestRequest);
       if (waitTime > 0) {
-        await new Promise(resolve => setTimeout(resolve, waitTime));
+        await new Promise((resolve) => setTimeout(resolve, waitTime));
       }
     }
 
@@ -360,7 +370,8 @@ class CircuitBreaker {
   recordSuccess() {
     if (this.state === 'HALF_OPEN') {
       this.successCount++;
-      if (this.successCount >= 3) { // Require 3 successes to close
+      if (this.successCount >= 3) {
+        // Require 3 successes to close
         this.state = 'CLOSED';
         this.failureCount = 0;
       }
@@ -375,7 +386,7 @@ class CircuitBreaker {
   recordFailure() {
     this.failureCount++;
     this.lastFailureTime = Date.now();
-    
+
     if (this.failureCount >= this.config.failureThreshold) {
       this.state = 'OPEN';
     }
@@ -393,7 +404,7 @@ class CacheManager {
       hits: 0,
       misses: 0,
       sets: 0,
-      deletes: 0
+      deletes: 0,
     };
   }
 
@@ -415,7 +426,7 @@ class CacheManager {
   async get(url) {
     const key = this.getCacheKey(url);
     const cached = this.cache.get(key);
-    
+
     if (cached) {
       // Check TTL
       const age = Date.now() - cached.timestamp;
@@ -426,7 +437,7 @@ class CacheManager {
         this.cache.delete(key);
       }
     }
-    
+
     this.stats.misses++;
     return null;
   }
@@ -440,7 +451,7 @@ class CacheManager {
     const key = this.getCacheKey(url);
     this.cache.set(key, {
       data,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
     this.stats.sets++;
   }
@@ -462,7 +473,7 @@ class CacheManager {
     return {
       ...this.stats,
       size: this.cache.size,
-      hitRate: this.stats.hits / (this.stats.hits + this.stats.misses) || 0
+      hitRate: this.stats.hits / (this.stats.hits + this.stats.misses) || 0,
     };
   }
 
@@ -500,21 +511,21 @@ class RobotsParser {
       // Skip lines that don't contain a colon
       if (!trimmed.includes(':')) continue;
 
-      const [directive, value] = trimmed.split(':').map(s => s.trim());
-      
+      const [directive, value] = trimmed.split(':').map((s) => s.trim());
+
       if (directive.toLowerCase() === 'user-agent') {
         currentUserAgent = value.toLowerCase();
       } else if (directive.toLowerCase() === 'disallow' && currentUserAgent) {
         rules.push({
           userAgent: currentUserAgent,
           path: value,
-          allow: false
+          allow: false,
         });
       } else if (directive.toLowerCase() === 'allow' && currentUserAgent) {
         rules.push({
           userAgent: currentUserAgent,
           path: value,
-          allow: true
+          allow: true,
         });
       }
     }
@@ -529,10 +540,13 @@ class RobotsParser {
    */
   isAllowed(url) {
     const urlPath = new URL(url).pathname;
-    
+
     // Check for specific rules (more specific first)
     const applicableRules = this.rules
-      .filter(rule => rule.userAgent === '*' || rule.userAgent === 'infinitepokedexbot')
+      .filter(
+        (rule) =>
+          rule.userAgent === '*' || rule.userAgent === 'infinitepokedexbot'
+      )
       .sort((a, b) => b.path.length - a.path.length);
 
     for (const rule of applicableRules) {

@@ -1,9 +1,9 @@
 /**
  * Smogon Crawler
- * 
+ *
  * Specialized crawler for Smogon Strategy Pokedex and forums with domain-specific
  * parsing and rate limiting optimized for their server capacity.
- * 
+ *
  * @fileoverview Smogon-specific crawler implementation
  * @author Infinite Pokédex Team
  * @version 1.0.0
@@ -21,7 +21,7 @@ export class SmogonCrawler extends BaseCrawler {
   constructor(config) {
     const smogonConfig = getSourceConfig('smogon');
     super({ ...smogonConfig, ...config });
-    
+
     this.baseUrl = this.config.baseUrl;
     this.selectors = this.config.selectors;
   }
@@ -35,22 +35,25 @@ export class SmogonCrawler extends BaseCrawler {
   async crawlStrategyPokemon(pokemonName, options = {}) {
     try {
       const url = this.buildStrategyUrl(pokemonName);
-      
+
       logger.info(`Crawling Smogon Strategy Pokedex for ${pokemonName}`);
-      
+
       const result = await this.crawlUrl(url, options);
       const parsedData = this.parseStrategyPage(result.data, pokemonName);
-      
+
       return {
         source: 'smogon',
         type: 'strategy',
         pokemonName,
         url,
         data: parsedData,
-        timestamp: result.timestamp
+        timestamp: result.timestamp,
       };
     } catch (error) {
-      logger.error(`Failed to crawl Smogon strategy for ${pokemonName}:`, error.message);
+      logger.error(
+        `Failed to crawl Smogon strategy for ${pokemonName}:`,
+        error.message
+      );
       throw error;
     }
   }
@@ -69,16 +72,21 @@ export class SmogonCrawler extends BaseCrawler {
       try {
         const result = await this.crawlStrategyPokemon(pokemonName, options);
         results.push(result);
-        
+
         // Respectful delay between requests
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise((resolve) => setTimeout(resolve, 2000));
       } catch (error) {
         errors.push({ pokemonName, error: error.message });
-        logger.warn(`Failed to crawl strategy for ${pokemonName}:`, error.message);
+        logger.warn(
+          `Failed to crawl strategy for ${pokemonName}:`,
+          error.message
+        );
       }
     }
 
-    logger.info(`Smogon strategy crawl completed: ${results.length} success, ${errors.length} errors`);
+    logger.info(
+      `Smogon strategy crawl completed: ${results.length} success, ${errors.length} errors`
+    );
     return { results, errors };
   }
 
@@ -91,19 +99,19 @@ export class SmogonCrawler extends BaseCrawler {
   async crawlForum(forumPath, options = {}) {
     try {
       const url = this.buildForumUrl(forumPath);
-      
+
       logger.info(`Crawling Smogon forums: ${forumPath}`);
-      
+
       const result = await this.crawlUrl(url, options);
       const parsedData = this.parseForumPage(result.data, forumPath);
-      
+
       return {
         source: 'smogon',
         type: 'forum',
         forumPath,
         url,
         data: parsedData,
-        timestamp: result.timestamp
+        timestamp: result.timestamp,
       };
     } catch (error) {
       logger.error(`Failed to crawl Smogon forum ${forumPath}:`, error.message);
@@ -120,22 +128,25 @@ export class SmogonCrawler extends BaseCrawler {
   async searchForumDiscussions(pokemonName, options = {}) {
     try {
       const searchUrl = this.buildForumSearchUrl(pokemonName);
-      
+
       logger.info(`Searching Smogon forums for ${pokemonName}`);
-      
+
       const result = await this.crawlUrl(searchUrl, options);
       const parsedData = this.parseForumSearchResults(result.data, pokemonName);
-      
+
       return {
         source: 'smogon',
         type: 'forum_search',
         pokemonName,
         url: searchUrl,
         data: parsedData,
-        timestamp: result.timestamp
+        timestamp: result.timestamp,
       };
     } catch (error) {
-      logger.error(`Failed to search Smogon forums for ${pokemonName}:`, error.message);
+      logger.error(
+        `Failed to search Smogon forums for ${pokemonName}:`,
+        error.message
+      );
       throw error;
     }
   }
@@ -146,7 +157,10 @@ export class SmogonCrawler extends BaseCrawler {
    * @returns {string} Full URL
    */
   buildStrategyUrl(pokemonName) {
-    const path = this.config.paths.strategy.replace('{name}', pokemonName.toLowerCase());
+    const path = this.config.paths.strategy.replace(
+      '{name}',
+      pokemonName.toLowerCase()
+    );
     return `${this.baseUrl}${path}`;
   }
 
@@ -178,7 +192,7 @@ export class SmogonCrawler extends BaseCrawler {
   parseStrategyPage(html, pokemonName) {
     try {
       const $ = cheerio.load(html);
-      
+
       const data = {
         name: this.extractStrategyName($),
         types: this.extractStrategyTypes($),
@@ -188,12 +202,15 @@ export class SmogonCrawler extends BaseCrawler {
         strategies: this.extractStrategies($),
         sets: this.extractSets($),
         usage: this.extractUsageStats($),
-        viability: this.extractViability($)
+        viability: this.extractViability($),
       };
 
       return data;
     } catch (error) {
-      logger.error(`Failed to parse Smogon strategy page for ${pokemonName}:`, error.message);
+      logger.error(
+        `Failed to parse Smogon strategy page for ${pokemonName}:`,
+        error.message
+      );
       throw error;
     }
   }
@@ -207,17 +224,20 @@ export class SmogonCrawler extends BaseCrawler {
   parseForumPage(html, forumPath) {
     try {
       const $ = cheerio.load(html);
-      
+
       const data = {
         threads: this.extractForumThreads($),
         posts: this.extractForumPosts($),
         discussions: this.extractDiscussions($),
-        tidbits: this.extractTidbits($)
+        tidbits: this.extractTidbits($),
       };
 
       return data;
     } catch (error) {
-      logger.error(`Failed to parse Smogon forum page ${forumPath}:`, error.message);
+      logger.error(
+        `Failed to parse Smogon forum page ${forumPath}:`,
+        error.message
+      );
       throw error;
     }
   }
@@ -231,17 +251,20 @@ export class SmogonCrawler extends BaseCrawler {
   parseForumSearchResults(html, pokemonName) {
     try {
       const $ = cheerio.load(html);
-      
+
       const data = {
         pokemonName,
         results: this.extractSearchResults($),
         discussions: this.extractDiscussionResults($),
-        tidbits: this.extractSearchTidbits($)
+        tidbits: this.extractSearchTidbits($),
       };
 
       return data;
     } catch (error) {
-      logger.error(`Failed to parse Smogon search results for ${pokemonName}:`, error.message);
+      logger.error(
+        `Failed to parse Smogon search results for ${pokemonName}:`,
+        error.message
+      );
       throw error;
     }
   }
@@ -298,7 +321,7 @@ export class SmogonCrawler extends BaseCrawler {
       const type = $(el).find('.move-type').text().trim();
       const power = $(el).find('.move-power').text().trim();
       const accuracy = $(el).find('.move-accuracy').text().trim();
-      
+
       if (name) {
         moves.push({ name, type, power, accuracy });
       }
@@ -334,7 +357,7 @@ export class SmogonCrawler extends BaseCrawler {
       const name = $(el).find('.strategy-name').text().trim();
       const description = $(el).find('.strategy-description').text().trim();
       const viability = $(el).find('.strategy-viability').text().trim();
-      
+
       if (name) {
         strategies.push({ name, description, viability });
       }
@@ -352,12 +375,14 @@ export class SmogonCrawler extends BaseCrawler {
     $(this.selectors.strategy + ' .set').each((i, el) => {
       const name = $(el).find('.set-name').text().trim();
       const moves = [];
-      $(el).find('.set-moves .move').each((j, moveEl) => {
-        moves.push($(moveEl).text().trim());
-      });
+      $(el)
+        .find('.set-moves .move')
+        .each((j, moveEl) => {
+          moves.push($(moveEl).text().trim());
+        });
       const ability = $(el).find('.set-ability').text().trim();
       const item = $(el).find('.set-item').text().trim();
-      
+
       if (name) {
         sets.push({ name, moves, ability, item });
       }
@@ -411,7 +436,7 @@ export class SmogonCrawler extends BaseCrawler {
       const author = $(el).find('.thread-author').text().trim();
       const date = $(el).find('.thread-date').text().trim();
       const replies = $(el).find('.thread-replies').text().trim();
-      
+
       if (title) {
         threads.push({ title, author, date, replies });
       }
@@ -430,7 +455,7 @@ export class SmogonCrawler extends BaseCrawler {
       const content = $(el).text().trim();
       const author = $(el).find('.post-author').text().trim();
       const date = $(el).find('.post-date').text().trim();
-      
+
       if (content) {
         posts.push({ content, author, date });
       }
@@ -449,7 +474,7 @@ export class SmogonCrawler extends BaseCrawler {
       const title = $(el).find('.discussion-title').text().trim();
       const content = $(el).find('.discussion-content').text().trim();
       const participants = $(el).find('.discussion-participants').text().trim();
-      
+
       if (title && content) {
         discussions.push({ title, content, participants });
       }
@@ -485,7 +510,7 @@ export class SmogonCrawler extends BaseCrawler {
       const title = $(el).find('.result-title').text().trim();
       const url = $(el).find('.result-url').attr('href');
       const snippet = $(el).find('.result-snippet').text().trim();
-      
+
       if (title) {
         results.push({ title, url, snippet });
       }
@@ -504,7 +529,7 @@ export class SmogonCrawler extends BaseCrawler {
       const title = $(el).find('.discussion-title').text().trim();
       const content = $(el).find('.discussion-content').text().trim();
       const participants = $(el).find('.discussion-participants').text().trim();
-      
+
       if (title) {
         discussions.push({ title, content, participants });
       }
@@ -538,7 +563,7 @@ export class SmogonCrawler extends BaseCrawler {
       baseUrl: this.baseUrl,
       rateLimit: this.config.rateLimit,
       cacheStats: this.getCacheStats(),
-      circuitBreakerState: this.circuitBreaker.state
+      circuitBreakerState: this.circuitBreaker.state,
     };
   }
 }

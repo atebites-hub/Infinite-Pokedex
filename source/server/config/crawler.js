@@ -1,9 +1,9 @@
 /**
  * Crawler Configuration
- * 
+ *
  * Defines rate limits, retry policies, and crawling behavior for different sources.
  * Ensures respectful crawling with robots.txt compliance and exponential backoff.
- * 
+ *
  * @fileoverview Crawler configuration and rate limiting
  * @author Infinite Pokédex Team
  * @version 1.0.0
@@ -19,15 +19,15 @@ export const defaultConfig = {
     requestsPerSecond: 10,
     burstLimit: 50,
     backoffMultiplier: 2,
-    maxBackoffDelay: 30000 // 30 seconds
+    maxBackoffDelay: 30000, // 30 seconds
   },
 
   // Retry policy
   retry: {
     maxRetries: 3,
     baseDelay: 1000, // 1 second
-    maxDelay: 30000,  // 30 seconds
-    retryableStatusCodes: [408, 429, 500, 502, 503, 504]
+    maxDelay: 30000, // 30 seconds
+    retryableStatusCodes: [408, 429, 500, 502, 503, 504],
   },
 
   // Request configuration
@@ -35,12 +35,12 @@ export const defaultConfig = {
     timeout: 30000, // 30 seconds
     userAgent: 'InfinitePokedexBot/1.0 (+https://github.com/infinite-pokedex)',
     headers: {
-      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
       'Accept-Language': 'en-US,en;q=0.5',
       'Accept-Encoding': 'gzip, deflate',
-      'Connection': 'keep-alive',
-      'Upgrade-Insecure-Requests': '1'
-    }
+      Connection: 'keep-alive',
+      'Upgrade-Insecure-Requests': '1',
+    },
   },
 
   // Cache configuration
@@ -48,7 +48,7 @@ export const defaultConfig = {
     enabled: true,
     ttl: 24 * 60 * 60 * 1000, // 24 hours
     maxSize: 100 * 1024 * 1024, // 100MB
-    compression: true
+    compression: true,
   },
 
   // Circuit breaker
@@ -56,8 +56,8 @@ export const defaultConfig = {
     enabled: true,
     failureThreshold: 5,
     resetTimeout: 60000, // 1 minute
-    monitoringPeriod: 300000 // 5 minutes
-  }
+    monitoringPeriod: 300000, // 5 minutes
+  },
 };
 
 /**
@@ -70,19 +70,19 @@ export const sourceConfigs = {
     rateLimit: {
       requestsPerMinute: 60, // More conservative for Bulbapedia
       requestsPerSecond: 1,
-      burstLimit: 5
+      burstLimit: 5,
     },
     paths: {
       species: '/wiki/{name}_(Pokémon)',
-      search: '/wiki/Special:Search'
+      search: '/wiki/Special:Search',
     },
     selectors: {
       title: 'h1#firstHeading',
       content: '#mw-content-text',
       infobox: '.infobox',
       stats: '.infobox tr',
-      moves: '.mw-parser-output ul li'
-    }
+      moves: '.mw-parser-output ul li',
+    },
   },
 
   serebii: {
@@ -91,18 +91,18 @@ export const sourceConfigs = {
     rateLimit: {
       requestsPerMinute: 120,
       requestsPerSecond: 2,
-      burstLimit: 10
+      burstLimit: 10,
     },
     paths: {
       species: '/pokedex/{id}.shtml',
-      search: '/pokedex/'
+      search: '/pokedex/',
     },
     selectors: {
       title: 'h1',
       content: '.content',
       stats: '.tab table tr',
-      moves: '.tab table tr td'
-    }
+      moves: '.tab table tr td',
+    },
   },
 
   smogon: {
@@ -111,12 +111,12 @@ export const sourceConfigs = {
     rateLimit: {
       requestsPerMinute: 60, // Conservative for Smogon
       requestsPerSecond: 1,
-      burstLimit: 5
+      burstLimit: 5,
     },
     paths: {
       strategy: '/dex/sv/pokemon/{name}/',
       forums: '/forums/',
-      search: '/dex/sv/pokemon/'
+      search: '/dex/sv/pokemon/',
     },
     selectors: {
       title: 'h1',
@@ -126,9 +126,9 @@ export const sourceConfigs = {
       abilities: '.dex-pokemon-page .dex-pokemon-abilities',
       stats: '.dex-pokemon-page .dex-pokemon-stats',
       forumPosts: '.forum-post',
-      forumContent: '.forum-post-content'
-    }
-  }
+      forumContent: '.forum-post-content',
+    },
+  },
 };
 
 /**
@@ -139,7 +139,7 @@ export const sourceConfigs = {
 export function getSourceConfig(source) {
   const baseConfig = { ...defaultConfig };
   const sourceConfig = sourceConfigs[source];
-  
+
   if (!sourceConfig) {
     throw new Error(`Unknown source: ${source}`);
   }
@@ -150,8 +150,8 @@ export function getSourceConfig(source) {
     ...sourceConfig,
     rateLimit: {
       ...baseConfig.rateLimit,
-      ...sourceConfig.rateLimit
-    }
+      ...sourceConfig.rateLimit,
+    },
   };
 }
 
@@ -162,7 +162,7 @@ export function getSourceConfig(source) {
  */
 export function validateConfig(config) {
   const required = ['rateLimit', 'retry', 'request', 'cache'];
-  
+
   for (const key of required) {
     if (!config[key]) {
       throw new Error(`Missing required configuration: ${key}`);

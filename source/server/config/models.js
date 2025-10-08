@@ -1,9 +1,9 @@
 /**
  * LLM Model Configuration
- * 
+ *
  * Defines OpenRouter model configurations for tidbit synthesis and content generation.
  * Includes model selection, prompt templates, and safety filters.
- * 
+ *
  * @fileoverview LLM model configuration and prompt templates
  * @author Infinite Pokédex Team
  * @version 1.0.0
@@ -20,7 +20,7 @@ export const modelConfigs = {
     temperature: 0.7,
     topP: 0.9,
     frequencyPenalty: 0.1,
-    presencePenalty: 0.1
+    presencePenalty: 0.1,
   },
 
   // Fallback model for reliability
@@ -30,7 +30,7 @@ export const modelConfigs = {
     temperature: 0.6,
     topP: 0.85,
     frequencyPenalty: 0.05,
-    presencePenalty: 0.05
+    presencePenalty: 0.05,
   },
 
   // Content validation model
@@ -40,8 +40,8 @@ export const modelConfigs = {
     temperature: 0.1,
     topP: 0.5,
     frequencyPenalty: 0,
-    presencePenalty: 0
-  }
+    presencePenalty: 0,
+  },
 };
 
 /**
@@ -122,7 +122,7 @@ Respond with JSON:
   "safe": true,
   "issues": [],
   "confidence": 0.95
-}`
+}`,
 };
 
 /**
@@ -135,7 +135,7 @@ export const safetyConfig = {
     violence: true,
     misinformation: true,
     copyright: true,
-    privacy: true
+    privacy: true,
   },
 
   // Minimum scores for approval
@@ -144,17 +144,11 @@ export const safetyConfig = {
     appropriateness: 4,
     interest: 3,
     clarity: 3,
-    safety: 0.8
+    safety: 0.8,
   },
 
   // Blocked content patterns
-  blockedPatterns: [
-    /spoil/i,
-    /leak/i,
-    /hack/i,
-    /cheat/i,
-    /exploit/i
-  ],
+  blockedPatterns: [/spoil/i, /leak/i, /hack/i, /cheat/i, /exploit/i],
 
   // Required source verification
   sourceRequirements: {
@@ -164,9 +158,9 @@ export const safetyConfig = {
       'bulbapedia.bulbagarden.net',
       'serebii.net',
       'pokemon.com',
-      'nintendo.com'
-    ]
-  }
+      'nintendo.com',
+    ],
+  },
 };
 
 /**
@@ -214,7 +208,7 @@ export function validateResponse(response, task) {
   const result = {
     valid: true,
     errors: [],
-    warnings: []
+    warnings: [],
   };
 
   // Check for required fields based on task
@@ -241,7 +235,13 @@ export function validateResponse(response, task) {
       break;
 
     case 'validation':
-      const requiredFields = ['accuracy', 'appropriateness', 'interest', 'clarity', 'approved'];
+      const requiredFields = [
+        'accuracy',
+        'appropriateness',
+        'interest',
+        'clarity',
+        'approved',
+      ];
       for (const field of requiredFields) {
         if (!(field in response)) {
           result.valid = false;

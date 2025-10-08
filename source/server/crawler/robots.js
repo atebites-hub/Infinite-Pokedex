@@ -1,9 +1,9 @@
 /**
  * Robots.txt Compliance Checker
- * 
+ *
  * Handles robots.txt fetching, parsing, and compliance checking for all crawlers.
  * Implements caching and respects crawl delays specified in robots.txt.
- * 
+ *
  * @fileoverview Robots.txt compliance and caching
  * @author Infinite Pokédex Team
  * @version 1.0.0
@@ -31,7 +31,7 @@ export class RobotsChecker {
     try {
       const domain = new URL(url).origin;
       const robots = await this.getRobotsTxt(domain);
-      
+
       if (!robots) {
         return true; // Assume allowed if no robots.txt
       }
@@ -52,7 +52,7 @@ export class RobotsChecker {
   async getCrawlDelay(domain, userAgent = 'InfinitePokedexBot/1.0') {
     try {
       const robots = await this.getRobotsTxt(domain);
-      
+
       if (!robots) {
         return 0; // No delay if no robots.txt
       }
@@ -73,7 +73,7 @@ export class RobotsChecker {
     // Check cache first
     if (this.cache.has(domain)) {
       const cached = this.cache.get(domain);
-      
+
       // Check if cache is still valid (24 hours)
       const age = Date.now() - cached.timestamp;
       if (age < 24 * 60 * 60 * 1000) {
@@ -86,17 +86,17 @@ export class RobotsChecker {
       const response = await axios.get(robotsUrl, {
         timeout: 10000,
         headers: {
-          'User-Agent': 'InfinitePokedexBot/1.0'
-        }
+          'User-Agent': 'InfinitePokedexBot/1.0',
+        },
       });
 
       if (response.status === 200) {
         const robots = new RobotsParser(response.data);
-        
+
         // Cache the result
         this.cache.set(domain, {
           robots,
-          timestamp: Date.now()
+          timestamp: Date.now(),
         });
 
         return robots;
@@ -106,7 +106,7 @@ export class RobotsChecker {
         // No robots.txt found - cache this result too
         this.cache.set(domain, {
           robots: null,
-          timestamp: Date.now()
+          timestamp: Date.now(),
         });
       }
       logger.debug(`No robots.txt found for ${domain}`);
@@ -130,7 +130,7 @@ export class RobotsChecker {
   getCacheStats() {
     return {
       size: this.cache.size,
-      domains: Array.from(this.cache.keys())
+      domains: Array.from(this.cache.keys()),
     };
   }
 }
@@ -163,20 +163,20 @@ class RobotsParser {
 
       const directive = trimmed.substring(0, colonIndex).trim().toLowerCase();
       const value = trimmed.substring(colonIndex + 1).trim();
-      
+
       if (directive === 'user-agent') {
         currentUserAgent = value.toLowerCase();
       } else if (directive === 'disallow' && currentUserAgent) {
         rules.push({
           userAgent: currentUserAgent,
           path: value,
-          allow: false
+          allow: false,
         });
       } else if (directive === 'allow' && currentUserAgent) {
         rules.push({
           userAgent: currentUserAgent,
           path: value,
-          allow: true
+          allow: true,
         });
       }
     }
@@ -203,7 +203,7 @@ class RobotsParser {
 
       const directive = trimmed.substring(0, colonIndex).trim().toLowerCase();
       const value = trimmed.substring(colonIndex + 1).trim();
-      
+
       if (directive === 'user-agent') {
         currentUserAgent = value.toLowerCase();
       } else if (directive === 'crawl-delay' && currentUserAgent) {
@@ -226,12 +226,13 @@ class RobotsParser {
   isAllowed(url, userAgent) {
     const urlPath = new URL(url).pathname;
     const normalizedUserAgent = userAgent.toLowerCase();
-    
+
     // Find applicable rules
-    const applicableRules = this.rules.filter(rule => 
-      rule.userAgent === '*' || 
-      rule.userAgent === normalizedUserAgent ||
-      normalizedUserAgent.includes(rule.userAgent)
+    const applicableRules = this.rules.filter(
+      (rule) =>
+        rule.userAgent === '*' ||
+        rule.userAgent === normalizedUserAgent ||
+        normalizedUserAgent.includes(rule.userAgent)
     );
 
     // Sort by specificity (longer paths first)
@@ -258,7 +259,7 @@ class RobotsParser {
     if (pattern === '/') {
       return true; // Disallow all
     }
-    
+
     if (pattern === '') {
       return false; // Allow all
     }
@@ -274,7 +275,7 @@ class RobotsParser {
    */
   getCrawlDelay(userAgent) {
     const normalizedUserAgent = userAgent.toLowerCase();
-    
+
     // Check for exact match first
     if (this.crawlDelays.has(normalizedUserAgent)) {
       return this.crawlDelays.get(normalizedUserAgent);

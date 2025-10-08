@@ -1,9 +1,9 @@
 /**
  * Structured Logger
- * 
+ *
  * Provides structured logging with different levels and formatting
  * for the Infinite Pokédex server components.
- * 
+ *
  * @fileoverview Structured logging utility
  * @author Infinite Pokédex Team
  * @version 1.0.0
@@ -16,13 +16,14 @@ const LOG_LEVELS = {
   ERROR: 0,
   WARN: 1,
   INFO: 2,
-  DEBUG: 3
+  DEBUG: 3,
 };
 
 /**
  * Current log level (can be set via environment variable)
  */
-const currentLevel = LOG_LEVELS[process.env.LOG_LEVEL?.toUpperCase()] ?? LOG_LEVELS.INFO;
+const currentLevel =
+  LOG_LEVELS[process.env.LOG_LEVEL?.toUpperCase()] ?? LOG_LEVELS.INFO;
 
 /**
  * Format log message
@@ -33,7 +34,8 @@ const currentLevel = LOG_LEVELS[process.env.LOG_LEVEL?.toUpperCase()] ?? LOG_LEV
  */
 function formatLog(level, message, meta = {}) {
   const timestamp = new Date().toISOString();
-  const metaStr = Object.keys(meta).length > 0 ? ` ${JSON.stringify(meta)}` : '';
+  const metaStr =
+    Object.keys(meta).length > 0 ? ` ${JSON.stringify(meta)}` : '';
   return `[${timestamp}] ${level}: ${message}${metaStr}`;
 }
 
@@ -91,7 +93,7 @@ export function createLogger(context) {
     error: (message, meta = {}) => error(`[${context}] ${message}`, meta),
     warn: (message, meta = {}) => warn(`[${context}] ${message}`, meta),
     info: (message, meta = {}) => info(`[${context}] ${message}`, meta),
-    debug: (message, meta = {}) => debug(`[${context}] ${message}`, meta)
+    debug: (message, meta = {}) => debug(`[${context}] ${message}`, meta),
   };
 }
 
@@ -103,5 +105,5 @@ export const logger = {
   warn,
   info,
   debug,
-  createLogger
+  createLogger,
 };

@@ -1,9 +1,9 @@
 /**
  * Bulbapedia Crawler
- * 
+ *
  * Specialized crawler for Bulbapedia with domain-specific parsing and
  * rate limiting optimized for their server capacity.
- * 
+ *
  * @fileoverview Bulbapedia-specific crawler implementation
  * @author Infinite Pokédex Team
  * @version 1.0.0
@@ -20,7 +20,7 @@ export class BulbapediaCrawler extends BaseCrawler {
   constructor(config) {
     const bulbapediaConfig = getSourceConfig('bulbapedia');
     super({ ...bulbapediaConfig, ...config });
-    
+
     this.baseUrl = this.config.baseUrl;
     this.selectors = this.config.selectors;
   }
@@ -35,22 +35,25 @@ export class BulbapediaCrawler extends BaseCrawler {
     try {
       const speciesName = await this.getSpeciesName(speciesId);
       const url = this.buildSpeciesUrl(speciesName);
-      
+
       logger.info(`Crawling Bulbapedia for ${speciesName} (${speciesId})`);
-      
+
       const result = await this.crawlUrl(url, options);
       const parsedData = this.parseSpeciesPage(result.data, speciesId);
-      
+
       return {
         source: 'bulbapedia',
         speciesId,
         speciesName,
         url,
         data: parsedData,
-        timestamp: result.timestamp
+        timestamp: result.timestamp,
       };
     } catch (error) {
-      logger.error(`Failed to crawl Bulbapedia species ${speciesId}:`, error.message);
+      logger.error(
+        `Failed to crawl Bulbapedia species ${speciesId}:`,
+        error.message
+      );
       throw error;
     }
   }
@@ -69,16 +72,18 @@ export class BulbapediaCrawler extends BaseCrawler {
       try {
         const result = await this.crawlSpecies(speciesId, options);
         results.push(result);
-        
+
         // Respectful delay between requests
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
       } catch (error) {
         errors.push({ speciesId, error: error.message });
         logger.warn(`Failed to crawl species ${speciesId}:`, error.message);
       }
     }
 
-    logger.info(`Bulbapedia crawl completed: ${results.length} success, ${errors.length} errors`);
+    logger.info(
+      `Bulbapedia crawl completed: ${results.length} success, ${errors.length} errors`
+    );
     return { results, errors };
   }
 
@@ -93,7 +98,7 @@ export class BulbapediaCrawler extends BaseCrawler {
     if (typeof speciesId === 'string') {
       return speciesId;
     }
-    
+
     // Convert ID to name (this would be more sophisticated in practice)
     const speciesNames = {
       1: 'Bulbasaur',
@@ -101,7 +106,7 @@ export class BulbapediaCrawler extends BaseCrawler {
       3: 'Venusaur',
       // ... more mappings
     };
-    
+
     return speciesNames[speciesId] || `Pokemon_${speciesId}`;
   }
 
@@ -133,12 +138,15 @@ export class BulbapediaCrawler extends BaseCrawler {
         abilities: this.extractAbilities(html),
         moves: this.extractMoves(html),
         description: this.extractDescription(html),
-        trivia: this.extractTrivia(html)
+        trivia: this.extractTrivia(html),
       };
 
       return data;
     } catch (error) {
-      logger.error(`Failed to parse Bulbapedia page for ${speciesId}:`, error.message);
+      logger.error(
+        `Failed to parse Bulbapedia page for ${speciesId}:`,
+        error.message
+      );
       throw error;
     }
   }
@@ -177,7 +185,7 @@ export class BulbapediaCrawler extends BaseCrawler {
       defense: 0,
       spAttack: 0,
       spDefense: 0,
-      speed: 0
+      speed: 0,
     };
   }
 
@@ -230,7 +238,7 @@ export class BulbapediaCrawler extends BaseCrawler {
     try {
       const searchUrl = `${this.baseUrl}/wiki/Special:Search/${encodeURIComponent(query)}`;
       const result = await this.crawlUrl(searchUrl);
-      
+
       // Parse search results
       return this.parseSearchResults(result.data);
     } catch (error) {
@@ -259,7 +267,7 @@ export class BulbapediaCrawler extends BaseCrawler {
       baseUrl: this.baseUrl,
       rateLimit: this.config.rateLimit,
       cacheStats: this.getCacheStats(),
-      circuitBreakerState: this.circuitBreaker.state
+      circuitBreakerState: this.circuitBreaker.state,
     };
   }
 }

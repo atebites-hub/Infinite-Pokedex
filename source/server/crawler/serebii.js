@@ -1,9 +1,9 @@
 /**
  * Serebii Crawler
- * 
+ *
  * Specialized crawler for Serebii with domain-specific parsing and
  * rate limiting optimized for their server capacity.
- * 
+ *
  * @fileoverview Serebii-specific crawler implementation
  * @author Infinite Pokédex Team
  * @version 1.0.0
@@ -20,7 +20,7 @@ export class SerebiiCrawler extends BaseCrawler {
   constructor(config) {
     const serebiiConfig = getSourceConfig('serebii');
     super({ ...serebiiConfig, ...config });
-    
+
     this.baseUrl = this.config.baseUrl;
     this.selectors = this.config.selectors;
   }
@@ -34,21 +34,24 @@ export class SerebiiCrawler extends BaseCrawler {
   async crawlSpecies(speciesId, options = {}) {
     try {
       const url = this.buildSpeciesUrl(speciesId);
-      
+
       logger.info(`Crawling Serebii for species ${speciesId}`);
-      
+
       const result = await this.crawlUrl(url, options);
       const parsedData = this.parseSpeciesPage(result.data, speciesId);
-      
+
       return {
         source: 'serebii',
         speciesId,
         url,
         data: parsedData,
-        timestamp: result.timestamp
+        timestamp: result.timestamp,
       };
     } catch (error) {
-      logger.error(`Failed to crawl Serebii species ${speciesId}:`, error.message);
+      logger.error(
+        `Failed to crawl Serebii species ${speciesId}:`,
+        error.message
+      );
       throw error;
     }
   }
@@ -67,16 +70,18 @@ export class SerebiiCrawler extends BaseCrawler {
       try {
         const result = await this.crawlSpecies(speciesId, options);
         results.push(result);
-        
+
         // Respectful delay between requests
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise((resolve) => setTimeout(resolve, 500));
       } catch (error) {
         errors.push({ speciesId, error: error.message });
         logger.warn(`Failed to crawl species ${speciesId}:`, error.message);
       }
     }
 
-    logger.info(`Serebii crawl completed: ${results.length} success, ${errors.length} errors`);
+    logger.info(
+      `Serebii crawl completed: ${results.length} success, ${errors.length} errors`
+    );
     return { results, errors };
   }
 
@@ -107,12 +112,15 @@ export class SerebiiCrawler extends BaseCrawler {
         moves: this.extractMoves(html),
         description: this.extractDescription(html),
         locations: this.extractLocations(html),
-        evolution: this.extractEvolution(html)
+        evolution: this.extractEvolution(html),
       };
 
       return data;
     } catch (error) {
-      logger.error(`Failed to parse Serebii page for ${speciesId}:`, error.message);
+      logger.error(
+        `Failed to parse Serebii page for ${speciesId}:`,
+        error.message
+      );
       throw error;
     }
   }
@@ -151,7 +159,7 @@ export class SerebiiCrawler extends BaseCrawler {
       defense: 0,
       spAttack: 0,
       spDefense: 0,
-      speed: 0
+      speed: 0,
     };
   }
 
@@ -215,7 +223,7 @@ export class SerebiiCrawler extends BaseCrawler {
       baseUrl: this.baseUrl,
       rateLimit: this.config.rateLimit,
       cacheStats: this.getCacheStats(),
-      circuitBreakerState: this.circuitBreaker.state
+      circuitBreakerState: this.circuitBreaker.state,
     };
   }
 }

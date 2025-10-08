@@ -1,6 +1,6 @@
 /**
  * Tidbit Synthesizer Tests
- * 
+ *
  * Tests for the TidbitSynthesizer class, focusing on cache key generation
  * and forum data handling.
  */
@@ -14,7 +14,7 @@ describe('TidbitSynthesizer', () => {
 
   beforeEach(() => {
     mockConfig = {
-      openRouterApiKey: 'test-api-key'
+      openRouterApiKey: 'test-api-key',
     };
     synthesizer = new TidbitSynthesizer(mockConfig);
   });
@@ -28,14 +28,22 @@ describe('TidbitSynthesizer', () => {
         stats: { hp: 35, attack: 55 },
         abilities: ['Static'],
         description: 'A mouse Pokémon',
-        trivia: ['First Pokémon in Pokédex']
+        trivia: ['First Pokémon in Pokédex'],
       };
 
       const forumData1 = 'Forum discussions about Pikachu being strong in OU';
       const forumData2 = 'Forum discussions about Pikachu being weak in OU';
 
-      const cacheKey1 = synthesizer.getCacheKey(speciesId, speciesData, forumData1);
-      const cacheKey2 = synthesizer.getCacheKey(speciesId, speciesData, forumData2);
+      const cacheKey1 = synthesizer.getCacheKey(
+        speciesId,
+        speciesData,
+        forumData1
+      );
+      const cacheKey2 = synthesizer.getCacheKey(
+        speciesId,
+        speciesData,
+        forumData2
+      );
 
       expect(cacheKey1).not.toBe(cacheKey2);
       expect(cacheKey1).toContain(speciesId);
@@ -50,12 +58,20 @@ describe('TidbitSynthesizer', () => {
         stats: { hp: 35, attack: 55 },
         abilities: ['Static'],
         description: 'A mouse Pokémon',
-        trivia: ['First Pokémon in Pokédex']
+        trivia: ['First Pokémon in Pokédex'],
       };
       const forumData = 'Forum discussions about Pikachu being strong in OU';
 
-      const cacheKey1 = synthesizer.getCacheKey(speciesId, speciesData, forumData);
-      const cacheKey2 = synthesizer.getCacheKey(speciesId, speciesData, forumData);
+      const cacheKey1 = synthesizer.getCacheKey(
+        speciesId,
+        speciesData,
+        forumData
+      );
+      const cacheKey2 = synthesizer.getCacheKey(
+        speciesId,
+        speciesData,
+        forumData
+      );
 
       expect(cacheKey1).toBe(cacheKey2);
     });
@@ -68,12 +84,16 @@ describe('TidbitSynthesizer', () => {
         stats: { hp: 35, attack: 55 },
         abilities: ['Static'],
         description: 'A mouse Pokémon',
-        trivia: ['First Pokémon in Pokédex']
+        trivia: ['First Pokémon in Pokédex'],
       };
       const forumData = 'Forum discussions about Pikachu being strong in OU';
 
-      const cacheKey = synthesizer.getCacheKey(speciesId, speciesData, forumData);
-      
+      const cacheKey = synthesizer.getCacheKey(
+        speciesId,
+        speciesData,
+        forumData
+      );
+
       // Extract hash part (after speciesId-)
       const hashPart = cacheKey.split('-')[1];
       expect(hashPart).toHaveLength(64); // Full SHA-256 hash
@@ -89,22 +109,33 @@ describe('TidbitSynthesizer', () => {
         description: 'A mouse Pokémon',
         trivia: ['First Pokémon in Pokédex'],
         tidbits: [
-          { title: 'Old tidbit', body: 'This should not affect cache key' }
-        ]
+          { title: 'Old tidbit', body: 'This should not affect cache key' },
+        ],
       };
       const forumData = 'Forum discussions about Pikachu being strong in OU';
 
-      const cacheKey1 = synthesizer.getCacheKey(speciesId, speciesData, forumData);
-      
+      const cacheKey1 = synthesizer.getCacheKey(
+        speciesId,
+        speciesData,
+        forumData
+      );
+
       // Add tidbits to speciesData and generate cache key again
       const speciesDataWithTidbits = {
         ...speciesData,
         tidbits: [
-          { title: 'New tidbit', body: 'This should not affect cache key either' }
-        ]
+          {
+            title: 'New tidbit',
+            body: 'This should not affect cache key either',
+          },
+        ],
       };
-      
-      const cacheKey2 = synthesizer.getCacheKey(speciesId, speciesDataWithTidbits, forumData);
+
+      const cacheKey2 = synthesizer.getCacheKey(
+        speciesId,
+        speciesDataWithTidbits,
+        forumData
+      );
 
       // Cache keys should be identical despite different tidbits
       expect(cacheKey1).toBe(cacheKey2);
@@ -118,10 +149,14 @@ describe('TidbitSynthesizer', () => {
         stats: { hp: 35, attack: 55 },
         abilities: ['Static'],
         description: 'A mouse Pokémon',
-        trivia: ['First Pokémon in Pokédex']
+        trivia: ['First Pokémon in Pokédex'],
       };
 
-      const cacheKey = synthesizer.getCacheKey(speciesId, speciesData, undefined);
+      const cacheKey = synthesizer.getCacheKey(
+        speciesId,
+        speciesData,
+        undefined
+      );
       expect(cacheKey).toContain(speciesId);
       expect(cacheKey).toHaveLength(speciesId.length + 1 + 64); // speciesId + '-' + 64-char hash
     });
@@ -130,7 +165,7 @@ describe('TidbitSynthesizer', () => {
   describe('getStats', () => {
     it('should return synthesizer statistics', () => {
       const stats = synthesizer.getStats();
-      
+
       expect(stats).toHaveProperty('cacheSize');
       expect(stats).toHaveProperty('apiKey');
       expect(stats).toHaveProperty('baseUrl');
@@ -145,7 +180,7 @@ describe('TidbitSynthesizer', () => {
       // Add something to cache
       synthesizer.cache.set('test-key', 'test-value');
       expect(synthesizer.cache.size).toBe(1);
-      
+
       // Clear cache
       synthesizer.clearCache();
       expect(synthesizer.cache.size).toBe(0);

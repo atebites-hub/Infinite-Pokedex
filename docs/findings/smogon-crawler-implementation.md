@@ -7,12 +7,14 @@ Successfully implemented a comprehensive Smogon crawler for the Infinite Pokéde
 ## Implementation Details
 
 ### 1. Configuration Added
+
 - **File**: `source/server/config/crawler.js`
 - **Rate Limits**: Conservative 60 requests/minute, 1 request/second, 5 burst limit
 - **Base URL**: `https://www.smogon.com`
 - **Selectors**: Comprehensive CSS selectors for strategy pages and forum content
 
 ### 2. SmogonCrawler Class
+
 - **File**: `source/server/crawler/smogon.js`
 - **Extends**: BaseCrawler for consistent rate limiting and error handling
 - **Features**:
@@ -24,24 +26,28 @@ Successfully implemented a comprehensive Smogon crawler for the Infinite Pokéde
 ### 3. Key Methods Implemented
 
 #### Strategy Pokedex Methods:
+
 - `crawlStrategyPokemon()` - Crawl individual Pokémon strategy pages
 - `crawlMultipleStrategyPokemon()` - Batch crawl multiple Pokémon
 - `parseStrategyPage()` - Parse strategy page HTML
 - `extractStrategyName()`, `extractStrategyTypes()`, `extractStrategyAbilities()`, etc.
 
 #### Forum Methods:
+
 - `crawlForum()` - Crawl specific forum threads
 - `searchForumDiscussions()` - Search for Pokémon-specific discussions
 - `parseForumPage()` - Parse forum HTML
 - `extractForumThreads()`, `extractForumPosts()`, `extractTidbits()`, etc.
 
 ### 4. Server Integration
+
 - **File**: `source/server/index.js`
 - **Added**: SmogonCrawler import and initialization
 - **Enhanced**: `crawlData()` method with Smogon-specific handling
 - **New Methods**: `crawlSmogonStrategy()`, `crawlSmogonForums()`, `getSpeciesName()`
 
 ### 5. Test Coverage
+
 - **File**: `tests/unit/smogon-crawler.test.js`
 - **Coverage**: URL building, HTML parsing, forum extraction, error handling
 - **Test Cases**: 15+ test cases covering all major functionality
@@ -49,6 +55,7 @@ Successfully implemented a comprehensive Smogon crawler for the Infinite Pokéde
 ## Data Extraction Capabilities
 
 ### Strategy Pokedex Data:
+
 - Pokémon names and types
 - Competitive abilities and descriptions
 - Move sets with power, accuracy, and type information
@@ -57,6 +64,7 @@ Successfully implemented a comprehensive Smogon crawler for the Infinite Pokéde
 - Competitive strategies and sets
 
 ### Forum Data:
+
 - Thread titles and authors
 - Post content and timestamps
 - Discussion participants
@@ -66,16 +74,19 @@ Successfully implemented a comprehensive Smogon crawler for the Infinite Pokéde
 ## Technical Considerations
 
 ### Rate Limiting:
+
 - Conservative approach: 1 request/second, 60/minute
 - Respects Smogon's server capacity
 - Implements exponential backoff and circuit breakers
 
 ### Error Handling:
+
 - Graceful degradation for missing data
 - Comprehensive error logging
 - Continues processing other sources on failure
 
 ### HTML Parsing:
+
 - Uses Cheerio for server-side jQuery-like parsing
 - Robust selectors for different page layouts
 - Handles missing or malformed content gracefully

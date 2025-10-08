@@ -1,9 +1,9 @@
 /**
  * Dataset Builder
- * 
+ *
  * Assembles processed species data into a canonical dataset with versioning,
  * content hashing, and integrity validation.
- * 
+ *
  * @fileoverview Dataset building and versioning
  * @author Infinite Pokédex Team
  * @version 1.0.0
@@ -24,7 +24,8 @@ const __dirname = dirname(__filename);
 export class DatasetBuilder {
   constructor(config) {
     this.config = config;
-    this.outputDir = config.outputDir || join(__dirname, '..', 'data', 'output');
+    this.outputDir =
+      config.outputDir || join(__dirname, '..', 'data', 'output');
     this.tempDir = config.tempDir || join(__dirname, '..', 'data', 'temp');
   }
 
@@ -36,7 +37,7 @@ export class DatasetBuilder {
   async build(enrichedData) {
     try {
       logger.info('Building dataset...');
-      
+
       const version = this.generateVersion();
       const dataset = {
         version,
@@ -46,22 +47,25 @@ export class DatasetBuilder {
           totalSpecies: 0,
           totalTidbits: 0,
           sources: new Set(),
-          contentHash: ''
-        }
+          contentHash: '',
+        },
       };
 
       // Process each species
       for (const [speciesId, speciesData] of Object.entries(enrichedData)) {
         try {
-          const canonicalSpecies = await this.buildSpecies(speciesId, speciesData);
+          const canonicalSpecies = await this.buildSpecies(
+            speciesId,
+            speciesData
+          );
           dataset.species[speciesId] = canonicalSpecies;
-          
+
           // Update metadata
           dataset.metadata.totalSpecies++;
           dataset.metadata.totalTidbits += (speciesData.tidbits || []).length;
-          
+
           if (speciesData.sources) {
-            Object.keys(speciesData.sources).forEach(source => {
+            Object.keys(speciesData.sources).forEach((source) => {
               dataset.metadata.sources.add(source);
             });
           }
@@ -87,13 +91,14 @@ export class DatasetBuilder {
         metadata: dataset.metadata,
         species: {
           index: speciesIndex,
-          data: dataset.species
-        }
+          data: dataset.species,
+        },
       };
 
-      logger.info(`Dataset built successfully: ${dataset.metadata.totalSpecies} species, ${dataset.metadata.totalTidbits} tidbits`);
+      logger.info(
+        `Dataset built successfully: ${dataset.metadata.totalSpecies} species, ${dataset.metadata.totalTidbits} tidbits`
+      );
       return finalDataset;
-
     } catch (error) {
       logger.error('Dataset building failed:', error);
       throw error;
@@ -123,7 +128,7 @@ export class DatasetBuilder {
       sources: this.formatSources(speciesData.sources || {}),
       tidbits: this.formatTidbits(speciesData.tidbits || []),
       image: this.formatImage(speciesData.images || []),
-      hash: ''
+      hash: '',
     };
 
     // Generate content hash
@@ -139,7 +144,7 @@ export class DatasetBuilder {
    */
   determineRegion(speciesId) {
     const id = parseInt(speciesId);
-    
+
     if (id <= 151) return 'Kanto';
     if (id <= 251) return 'Johto';
     if (id <= 386) return 'Hoenn';
@@ -201,13 +206,13 @@ export class DatasetBuilder {
    * @returns {Array} Formatted moves
    */
   formatMoves(moves) {
-    return moves.slice(0, 50).map(move => ({
+    return moves.slice(0, 50).map((move) => ({
       name: move.name || 'Unknown Move',
       method: move.method || 'Level Up',
       level: move.level || 1,
       type: move.type || 'Normal',
       power: move.power || 0,
-      accuracy: move.accuracy || 100
+      accuracy: move.accuracy || 100,
     }));
   }
 
@@ -218,12 +223,12 @@ export class DatasetBuilder {
    */
   formatEntries(description) {
     if (!description) return [];
-    
+
     // Split into sentences and clean
     const sentences = description
       .split(/[.!?]+/)
-      .map(s => s.trim())
-      .filter(s => s.length > 10)
+      .map((s) => s.trim())
+      .filter((s) => s.length > 10)
       .slice(0, 3); // Limit to 3 entries
 
     return sentences;
@@ -236,11 +241,11 @@ export class DatasetBuilder {
    */
   formatSources(sources) {
     const formatted = {};
-    
+
     for (const [source, data] of Object.entries(sources)) {
       formatted[source] = {
         url: data.url || '',
-        timestamp: data.timestamp || new Date().toISOString()
+        timestamp: data.timestamp || new Date().toISOString(),
       };
     }
 
@@ -253,11 +258,11 @@ export class DatasetBuilder {
    * @returns {Array} Formatted tidbits
    */
   formatTidbits(tidbits) {
-    return tidbits.slice(0, 7).map(tidbit => ({
+    return tidbits.slice(0, 7).map((tidbit) => ({
       title: tidbit.title || 'Unknown Title',
       body: tidbit.body || 'No description available',
       sourceRefs: tidbit.sourceRefs || [],
-      quality: tidbit.quality || {}
+      quality: tidbit.quality || {},
     }));
   }
 
@@ -270,14 +275,14 @@ export class DatasetBuilder {
     if (images.length === 0) {
       return {
         base: '',
-        license: 'unknown'
+        license: 'unknown',
       };
     }
 
     const primaryImage = images[0];
     return {
       base: primaryImage.src || '',
-      license: 'attribution-required'
+      license: 'attribution-required',
     };
   }
 
@@ -288,14 +293,14 @@ export class DatasetBuilder {
    */
   createSpeciesIndex(species) {
     const index = {};
-    
+
     for (const [speciesId, speciesData] of Object.entries(species)) {
       index[speciesId] = {
         id: speciesData.id,
         name: speciesData.name,
         types: speciesData.types,
         hash: speciesData.hash,
-        lastUpdated: new Date().toISOString()
+        lastUpdated: new Date().toISOString(),
       };
     }
 
@@ -313,7 +318,7 @@ export class DatasetBuilder {
     const day = String(now.getDate()).padStart(2, '0');
     const hour = String(now.getHours()).padStart(2, '0');
     const minute = String(now.getMinutes()).padStart(2, '0');
-    
+
     return `${year}${month}${day}-${hour}${minute}`;
   }
 
@@ -348,7 +353,7 @@ export class DatasetBuilder {
     const result = {
       valid: true,
       errors: [],
-      warnings: []
+      warnings: [],
     };
 
     // Check required fields
@@ -369,7 +374,9 @@ export class DatasetBuilder {
 
     // Check species data
     if (dataset.species && dataset.species.data) {
-      for (const [speciesId, speciesData] of Object.entries(dataset.species.data)) {
+      for (const [speciesId, speciesData] of Object.entries(
+        dataset.species.data
+      )) {
         if (!speciesData.id) {
           result.warnings.push(`Species ${speciesId} missing ID`);
         }
@@ -392,7 +399,7 @@ export class DatasetBuilder {
   getStats() {
     return {
       outputDir: this.outputDir,
-      tempDir: this.tempDir
+      tempDir: this.tempDir,
     };
   }
 }

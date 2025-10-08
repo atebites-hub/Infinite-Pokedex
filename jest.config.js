@@ -18,5 +18,5 @@ export default {
     },
   },
   transform: {},
-  testTimeout: 10000
+  testTimeout: 10000,
 };

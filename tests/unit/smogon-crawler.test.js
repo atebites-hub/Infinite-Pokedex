@@ -1,9 +1,9 @@
 /**
  * Smogon Crawler Tests
- * 
+ *
  * Unit tests for Smogon crawler functionality including strategy pokedex
  * and forum crawling capabilities.
- * 
+ *
  * @fileoverview Smogon crawler test suite
  * @author Infinite Pokédex Team
  * @version 1.0.0
@@ -20,8 +20,8 @@ describe('SmogonCrawler', () => {
       rateLimit: {
         requestsPerMinute: 60,
         requestsPerSecond: 1,
-        burstLimit: 5
-      }
+        burstLimit: 5,
+      },
     });
   });
 
@@ -178,7 +178,9 @@ describe('SmogonCrawler', () => {
       const results = crawler.extractSearchResults($);
       expect(results).toHaveLength(1);
       expect(results[0].title).toBe('Pikachu OU Analysis');
-      expect(results[0].snippet).toBe('Pikachu has great speed and special attack...');
+      expect(results[0].snippet).toBe(
+        'Pikachu has great speed and special attack...'
+      );
     });
 
     it('should parse discussion results', () => {
@@ -192,7 +194,9 @@ describe('SmogonCrawler', () => {
     it('should extract search tidbits', () => {
       const $ = require('cheerio').load(mockSearchHtml);
       const tidbits = crawler.extractSearchTidbits($);
-      expect(tidbits).toContain('Pikachu has great speed and special attack...');
+      expect(tidbits).toContain(
+        'Pikachu has great speed and special attack...'
+      );
     });
   });
 
@@ -210,7 +214,7 @@ describe('SmogonCrawler', () => {
     it('should handle invalid HTML gracefully', () => {
       const invalidHtml = '<html><body>Invalid content</body></html>';
       const $ = require('cheerio').load(invalidHtml);
-      
+
       expect(() => crawler.extractStrategyName($)).not.toThrow();
       expect(() => crawler.extractStrategyTypes($)).not.toThrow();
       expect(() => crawler.extractStrategyAbilities($)).not.toThrow();
@@ -219,7 +223,7 @@ describe('SmogonCrawler', () => {
     it('should return empty arrays for missing data', () => {
       const emptyHtml = '<html><body></body></html>';
       const $ = require('cheerio').load(emptyHtml);
-      
+
       expect(crawler.extractStrategyTypes($)).toEqual([]);
       expect(crawler.extractStrategyAbilities($)).toEqual([]);
       expect(crawler.extractStrategyMoves($)).toEqual([]);

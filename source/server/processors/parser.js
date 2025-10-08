@@ -1,9 +1,9 @@
 /**
  * Data Processor and Parser
- * 
+ *
  * Handles HTML parsing, data normalization, and schema validation for
  * crawled Pokémon data from multiple sources.
- * 
+ *
  * @fileoverview Data processing and HTML parsing
  * @author Infinite Pokédex Team
  * @version 1.0.0
@@ -30,9 +30,9 @@ export class DataProcessor {
   async process(rawData) {
     try {
       logger.info('Processing crawled data...');
-      
+
       const processedData = {};
-      
+
       // Process each source
       for (const [source, data] of Object.entries(rawData)) {
         logger.info(`Processing ${source} data...`);
@@ -41,10 +41,11 @@ export class DataProcessor {
 
       // Merge and normalize data
       const normalizedData = await this.normalizeData(processedData);
-      
-      logger.info(`Processing complete: ${Object.keys(normalizedData).length} species processed`);
-      return normalizedData;
 
+      logger.info(
+        `Processing complete: ${Object.keys(normalizedData).length} species processed`
+      );
+      return normalizedData;
     } catch (error) {
       logger.error('Data processing failed:', error);
       throw error;
@@ -65,7 +66,10 @@ export class DataProcessor {
         const processedSpecies = await this.processSpecies(source, speciesData);
         processed[speciesId] = processedSpecies;
       } catch (error) {
-        logger.error(`Failed to process ${source} species ${speciesId}:`, error.message);
+        logger.error(
+          `Failed to process ${source} species ${speciesId}:`,
+          error.message
+        );
         // Continue with other species
       }
     }
@@ -81,10 +85,10 @@ export class DataProcessor {
    */
   async processSpecies(source, speciesData) {
     const { data, url, timestamp } = speciesData;
-    
+
     // Parse HTML content
     const $ = cheerio.load(data);
-    
+
     // Extract data based on source
     let parsedData;
     switch (source) {
@@ -121,7 +125,7 @@ export class DataProcessor {
       moves: this.extractMoves($),
       description: this.extractDescription($),
       trivia: this.extractTrivia($),
-      images: this.extractImages($)
+      images: this.extractImages($),
     };
 
     return data;
@@ -142,7 +146,7 @@ export class DataProcessor {
       description: this.extractDescription($),
       locations: this.extractLocations($),
       evolution: this.extractEvolution($),
-      images: this.extractImages($)
+      images: this.extractImages($),
     };
 
     return data;
@@ -159,7 +163,7 @@ export class DataProcessor {
       'h1#firstHeading',
       'h1',
       '.infobox .infobox-title',
-      '.pokedex-title'
+      '.pokedex-title',
     ];
 
     for (const selector of selectors) {
@@ -179,12 +183,12 @@ export class DataProcessor {
    */
   extractTypes($) {
     const types = [];
-    
+
     // Look for type information in various places
     $('.infobox tr').each((i, row) => {
       const $row = $(row);
       const label = $row.find('th').text().trim().toLowerCase();
-      
+
       if (label.includes('type')) {
         $row.find('td a').each((j, link) => {
           const type = $(link).text().trim();
@@ -210,18 +214,18 @@ export class DataProcessor {
       defense: 0,
       spAttack: 0,
       spDefense: 0,
-      speed: 0
+      speed: 0,
     };
 
     // Look for stats table
     $('table tr').each((i, row) => {
       const $row = $(row);
       const cells = $row.find('td');
-      
+
       if (cells.length >= 2) {
         const label = cells.first().text().trim().toLowerCase();
         const value = parseInt(cells.eq(1).text().trim());
-        
+
         if (!isNaN(value)) {
           switch (label) {
             case 'hp':
@@ -260,11 +264,11 @@ export class DataProcessor {
    */
   extractAbilities($) {
     const abilities = [];
-    
+
     $('.infobox tr').each((i, row) => {
       const $row = $(row);
       const label = $row.find('th').text().trim().toLowerCase();
-      
+
       if (label.includes('ability') || label.includes('abilities')) {
         $row.find('td a').each((j, link) => {
           const ability = $(link).text().trim();
@@ -285,12 +289,12 @@ export class DataProcessor {
    */
   extractMoves($) {
     const moves = [];
-    
+
     // Look for moves in various sections
     $('h2, h3').each((i, header) => {
       const $header = $(header);
       const text = $header.text().trim().toLowerCase();
-      
+
       if (text.includes('move') || text.includes('attack')) {
         const $list = $header.nextUntil('h2, h3');
         $list.find('li, tr').each((j, item) => {
@@ -298,7 +302,7 @@ export class DataProcessor {
           if (moveText) {
             moves.push({
               name: this.cleanText(moveText),
-              source: 'parsed'
+              source: 'parsed',
             });
           }
         });
@@ -315,11 +319,7 @@ export class DataProcessor {
    */
   extractDescription($) {
     // Look for description in various places
-    const selectors = [
-      '.mw-parser-output p',
-      '.content p',
-      '.description p'
-    ];
+    const selectors = ['.mw-parser-output p', '.content p', '.description p'];
 
     for (const selector of selectors) {
       const $p = $(selector).first();
@@ -339,12 +339,16 @@ export class DataProcessor {
    */
   extractTrivia($) {
     const trivia = [];
-    
+
     $('h2, h3').each((i, header) => {
       const $header = $(header);
       const text = $header.text().trim().toLowerCase();
-      
-      if (text.includes('trivia') || text.includes('origin') || text.includes('name')) {
+
+      if (
+        text.includes('trivia') ||
+        text.includes('origin') ||
+        text.includes('name')
+      ) {
         const $list = $header.nextUntil('h2, h3');
         $list.find('li').each((j, item) => {
           const triviaText = $(item).text().trim();
@@ -365,11 +369,11 @@ export class DataProcessor {
    */
   extractLocations($) {
     const locations = [];
-    
+
     $('h2, h3').each((i, header) => {
       const $header = $(header);
       const text = $header.text().trim().toLowerCase();
-      
+
       if (text.includes('location') || text.includes('where')) {
         const $list = $header.nextUntil('h2, h3');
         $list.find('li, a').each((j, item) => {
@@ -393,14 +397,14 @@ export class DataProcessor {
     const evolution = {
       chain: [],
       method: '',
-      level: null
+      level: null,
     };
 
     // Look for evolution information
     $('.infobox tr').each((i, row) => {
       const $row = $(row);
       const label = $row.find('th').text().trim().toLowerCase();
-      
+
       if (label.includes('evolution') || label.includes('evolve')) {
         const text = $row.find('td').text().trim();
         evolution.method = this.cleanText(text);
@@ -417,18 +421,22 @@ export class DataProcessor {
    */
   extractImages($) {
     const images = [];
-    
+
     $('img').each((i, img) => {
       const $img = $(img);
       const src = $img.attr('src');
       const alt = $img.attr('alt') || '';
-      
-      if (src && (alt.toLowerCase().includes('pokemon') || alt.toLowerCase().includes('pokémon'))) {
+
+      if (
+        src &&
+        (alt.toLowerCase().includes('pokemon') ||
+          alt.toLowerCase().includes('pokémon'))
+      ) {
         images.push({
           src: this.normalizeImageUrl(src),
           alt: this.cleanText(alt),
           width: $img.attr('width'),
-          height: $img.attr('height')
+          height: $img.attr('height'),
         });
       }
     });
@@ -446,7 +454,7 @@ export class DataProcessor {
 
     // Group by species ID
     const speciesGroups = {};
-    
+
     for (const [source, data] of Object.entries(processedData)) {
       for (const [speciesId, speciesData] of Object.entries(data)) {
         if (!speciesGroups[speciesId]) {
@@ -459,10 +467,16 @@ export class DataProcessor {
     // Normalize each species
     for (const [speciesId, sources] of Object.entries(speciesGroups)) {
       try {
-        const normalizedSpecies = await this.normalizeSpecies(speciesId, sources);
+        const normalizedSpecies = await this.normalizeSpecies(
+          speciesId,
+          sources
+        );
         normalized[speciesId] = normalizedSpecies;
       } catch (error) {
-        logger.error(`Failed to normalize species ${speciesId}:`, error.message);
+        logger.error(
+          `Failed to normalize species ${speciesId}:`,
+          error.message
+        );
         // Continue with other species
       }
     }
@@ -489,53 +503,57 @@ export class DataProcessor {
       locations: [],
       evolution: {},
       images: [],
-      sources: {}
+      sources: {},
     };
 
     // Merge data from all sources
     for (const [source, data] of Object.entries(sources)) {
       normalized.sources[source] = {
         url: data.url,
-        timestamp: data.timestamp
+        timestamp: data.timestamp,
       };
 
       // Merge fields, preferring non-empty values
       if (data.name && !normalized.name) {
         normalized.name = data.name;
       }
-      
+
       if (data.types && data.types.length > 0) {
         normalized.types = [...new Set([...normalized.types, ...data.types])];
       }
-      
+
       if (data.stats && Object.keys(data.stats).length > 0) {
         normalized.stats = { ...normalized.stats, ...data.stats };
       }
-      
+
       if (data.abilities && data.abilities.length > 0) {
-        normalized.abilities = [...new Set([...normalized.abilities, ...data.abilities])];
+        normalized.abilities = [
+          ...new Set([...normalized.abilities, ...data.abilities]),
+        ];
       }
-      
+
       if (data.moves && data.moves.length > 0) {
         normalized.moves = [...normalized.moves, ...data.moves];
       }
-      
+
       if (data.description && !normalized.description) {
         normalized.description = data.description;
       }
-      
+
       if (data.trivia && data.trivia.length > 0) {
         normalized.trivia = [...normalized.trivia, ...data.trivia];
       }
-      
+
       if (data.locations && data.locations.length > 0) {
-        normalized.locations = [...new Set([...normalized.locations, ...data.locations])];
+        normalized.locations = [
+          ...new Set([...normalized.locations, ...data.locations]),
+        ];
       }
-      
+
       if (data.evolution && Object.keys(data.evolution).length > 0) {
         normalized.evolution = { ...normalized.evolution, ...data.evolution };
       }
-      
+
       if (data.images && data.images.length > 0) {
         normalized.images = [...normalized.images, ...data.images];
       }
@@ -544,7 +562,10 @@ export class DataProcessor {
     // Validate against schema
     const validation = validateSchema(normalized, this.schema);
     if (!validation.valid) {
-      logger.warn(`Schema validation failed for species ${speciesId}:`, validation.errors);
+      logger.warn(
+        `Schema validation failed for species ${speciesId}:`,
+        validation.errors
+      );
     }
 
     return normalized;
@@ -594,7 +615,7 @@ export class DataProcessor {
       locations: { type: 'array', required: false },
       evolution: { type: 'object', required: false },
       images: { type: 'array', required: false },
-      sources: { type: 'object', required: true }
+      sources: { type: 'object', required: true },
     };
   }
 }
