@@ -297,7 +297,7 @@ class RateLimiter {
   async wait() {
     const now = Date.now();
 
-    // Refill burst tokens
+    // Refill burst tokens based on time elapsed
     const timeSinceRefill = now - this.lastRefill;
     const tokensToAdd =
       (timeSinceRefill / 1000) * this.config.requestsPerSecond;
@@ -311,25 +311,33 @@ class RateLimiter {
     if (this.burstTokens <= 0) {
       const waitTime = 1000 / this.config.requestsPerSecond;
       await new Promise((resolve) => setTimeout(resolve, waitTime));
-      // Don't decrement burstTokens when it's already zero or negative
-      // Just refill after waiting
+      
+      // After waiting, refill tokens based on the time that passed
+      const timeAfterWait = Date.now();
+      const additionalTime = timeAfterWait - now;
+      const additionalTokens = (additionalTime / 1000) * this.config.requestsPerSecond;
       this.burstTokens = Math.min(
-        this.config.requestsPerSecond,
+        this.burstTokens + additionalTokens,
         this.config.burstLimit
       );
-    } else {
-      this.burstTokens--;
+      this.lastRefill = timeAfterWait;
     }
+
+    // Consume one token for this request
+    this.burstTokens = Math.max(0, this.burstTokens - 1);
 
     // Check minute limit
     const minuteAgo = now - 60000;
     this.requests = this.requests.filter((time) => time > minuteAgo);
 
     if (this.requests.length >= this.config.requestsPerMinute) {
-      const oldestRequest = Math.min(...this.requests);
-      const waitTime = 60000 - (now - oldestRequest);
-      if (waitTime > 0) {
-        await new Promise((resolve) => setTimeout(resolve, waitTime));
+      // Handle empty array case safely
+      if (this.requests.length > 0) {
+        const oldestRequest = Math.min(...this.requests);
+        const waitTime = 60000 - (now - oldestRequest);
+        if (waitTime > 0) {
+          await new Promise((resolve) => setTimeout(resolve, waitTime));
+        }
       }
     }
 

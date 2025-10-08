@@ -19,9 +19,7 @@ export default {
   },
   transform: {},
   testTimeout: 10000,
-  preset: 'jest-preset-default',
-  extensionsToTreatAsEsm: ['.js'],
-  moduleNameMapping: {
+  moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1',
   },
 };

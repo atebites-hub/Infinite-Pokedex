@@ -9,8 +9,8 @@
  * @version 1.0.0
  */
 
-import { describe, it, expect, beforeEach, jest } from '@jest/globals';
-import { SmogonCrawler } from '../../source/server/crawler/smogon.js';
+const { describe, it, expect, beforeEach } = require('@jest/globals');
+const { SmogonCrawler } = require('../../source/server/crawler/smogon.js');
 
 describe('SmogonCrawler', () => {
   let crawler;

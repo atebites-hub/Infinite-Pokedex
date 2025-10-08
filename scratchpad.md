@@ -225,6 +225,8 @@ The project combines server-side web crawling of Bulbapedia/Serebii for canonica
 - **Text Cleaning Bug Fix**: Fixed regex pattern in DataProcessor.cleanText() and sanitizeText() functions to preserve valid punctuation like apostrophes, parentheses, and colons while still removing invalid special characters, preventing corruption of Pokémon names and descriptions
 - **SerebiiCrawler Data Extraction Bug Fix**: Fixed SerebiiCrawler class to replace hardcoded placeholder values with actual HTML parsing using Cheerio, enabling proper extraction of Pokémon data from Serebii pages including name, types, stats, abilities, moves, description, locations, and evolution information
 - **Robots.txt Multiple Colons Bug Fix**: Fixed RobotsParser.parseRobotsTxt() method in BaseCrawler to properly handle lines containing multiple colons by using indexOf(':') and substring() instead of split(':'), ensuring complete value preservation for robots.txt rules like "Disallow: /path:with:colons"
+- **Rate Limiter Burst Token Logic Bug Fix**: Fixed RateLimiter.wait() method in BaseCrawler to properly handle burst token consumption and refill during wait periods, preventing burstTokens from becoming permanently zero or negative by accounting for time elapsed during waits and using Math.max(0, burstTokens - 1) for token consumption
+- **Rate Limiter Minute Limit Check Bug Fix**: Fixed minute limit check in RateLimiter.wait() method to safely handle empty requests array by checking array length before using Math.min(...this.requests), preventing runtime errors when no previous requests exist
 
 ### Process Lessons
 

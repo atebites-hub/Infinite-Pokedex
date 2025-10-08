@@ -10,8 +10,8 @@
  * 5. Handles undefined forum data
  */
 
-import { describe, it, expect, beforeEach } from '@jest/globals';
-import { TidbitSynthesizer } from '../../source/server/processors/tidbit-synthesizer.js';
+const { describe, it, expect, beforeEach } = require('@jest/globals');
+const { TidbitSynthesizer } = require('../../source/server/processors/tidbit-synthesizer.js');
 
 describe('TidbitSynthesizer Cache Key Fix', () => {
   let synthesizer;
