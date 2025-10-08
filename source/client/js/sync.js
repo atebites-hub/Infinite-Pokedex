@@ -51,6 +51,10 @@ export class CDNSync {
         const request = store.get('dataset-version');
         request.onsuccess = () => resolve(request.result);
         request.onerror = () => reject(request.error);
+        
+        // Wait for transaction to complete
+        tx.oncomplete = () => {};
+        tx.onerror = () => reject(tx.error);
       });
       return versionData?.value || null;
     } catch (err) {
@@ -208,7 +212,11 @@ export class CDNSync {
     const store = tx.objectStore('species');
     await new Promise((resolve, reject) => {
       const request = store.put(speciesData);
-      request.onsuccess = () => resolve();
+      request.onsuccess = () => {
+        // Wait for transaction to complete before resolving
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      };
       request.onerror = () => reject(request.error);
     });
   }
@@ -231,7 +239,11 @@ export class CDNSync {
           timestamp: Date.now(),
         },
       });
-      request.onsuccess = () => resolve();
+      request.onsuccess = () => {
+        // Wait for transaction to complete before resolving
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      };
       request.onerror = () => reject(request.error);
     });
     logger.info('Checkpoint saved', { chunkId });
@@ -251,6 +263,10 @@ export class CDNSync {
         const request = store.get('sync-checkpoint');
         request.onsuccess = () => resolve(request.result);
         request.onerror = () => reject(request.error);
+        
+        // Wait for transaction to complete
+        tx.oncomplete = () => {};
+        tx.onerror = () => reject(tx.error);
       });
       return checkpoint?.value || null;
     } catch (err) {
@@ -270,7 +286,11 @@ export class CDNSync {
     const store = tx.objectStore('metadata');
     await new Promise((resolve, reject) => {
       const request = store.delete('sync-checkpoint');
-      request.onsuccess = () => resolve();
+      request.onsuccess = () => {
+        // Wait for transaction to complete before resolving
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      };
       request.onerror = () => reject(request.error);
     });
     logger.info('Checkpoint cleared');
@@ -291,7 +311,11 @@ export class CDNSync {
         key: 'dataset-version',
         value: version,
       });
-      request.onsuccess = () => resolve();
+      request.onsuccess = () => {
+        // Wait for transaction to complete before resolving
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      };
       request.onerror = () => reject(request.error);
     });
     this.currentVersion = version;

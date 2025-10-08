@@ -213,7 +213,7 @@ export function validateResponse(response, task) {
 
   // Check for required fields based on task
   switch (task) {
-    case 'tidbitSynthesis':
+    case 'tidbitSynthesis': {
       if (!response.tidbits || !Array.isArray(response.tidbits)) {
         result.valid = false;
         result.errors.push('Missing or invalid tidbits array');
@@ -233,6 +233,7 @@ export function validateResponse(response, task) {
         }
       }
       break;
+    }
 
     case 'validation': {
       const requiredFields = [
@@ -251,12 +252,13 @@ export function validateResponse(response, task) {
       break;
     }
 
-    case 'safetyFilter':
+    case 'safetyFilter': {
       if (!('safe' in response) || typeof response.safe !== 'boolean') {
         result.valid = false;
         result.errors.push('Missing or invalid safe field');
       }
       break;
+    }
   }
 
   return result;

@@ -411,7 +411,11 @@ export class ErrorHandler {
           value: errors,
           updatedAt: Date.now(),
         });
-        request.onsuccess = () => resolve();
+        request.onsuccess = () => {
+          // Wait for transaction to complete before resolving
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => reject(tx.error);
+        };
         request.onerror = () => reject(request.error);
       });
     } catch (error) {
@@ -459,6 +463,10 @@ export class ErrorHandler {
         const request = store.get('error_log');
         request.onsuccess = () => resolve(request.result);
         request.onerror = () => reject(request.error);
+        
+        // Wait for transaction to complete
+        tx.oncomplete = () => {};
+        tx.onerror = () => reject(tx.error);
       });
 
       return errorsData?.value || [];
@@ -483,7 +491,11 @@ export class ErrorHandler {
 
       await new Promise((resolve, reject) => {
         const request = store.delete('error_log');
-        request.onsuccess = () => resolve();
+        request.onsuccess = () => {
+          // Wait for transaction to complete before resolving
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => reject(tx.error);
+        };
         request.onerror = () => reject(request.error);
       });
 

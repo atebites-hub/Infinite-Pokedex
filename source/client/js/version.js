@@ -35,6 +35,10 @@ export class VersionManager {
         const request = store.get('current_version');
         request.onsuccess = () => resolve(request.result);
         request.onerror = () => reject(request.error);
+        
+        // Wait for transaction to complete
+        tx.oncomplete = () => {};
+        tx.onerror = () => reject(tx.error);
       });
 
       if (versionData) {
@@ -185,7 +189,11 @@ export class VersionManager {
           value: newVersion,
           updatedAt: Date.now(),
         });
-        request.onsuccess = () => resolve();
+        request.onsuccess = () => {
+          // Wait for transaction to complete before resolving
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => reject(tx.error);
+        };
         request.onerror = () => reject(request.error);
       });
 
@@ -319,7 +327,11 @@ export class VersionManager {
 
       await new Promise((resolve, reject) => {
         const request = store.delete('current_version');
-        request.onsuccess = () => resolve();
+        request.onsuccess = () => {
+          // Wait for transaction to complete before resolving
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => reject(tx.error);
+        };
         request.onerror = () => reject(request.error);
       });
 
@@ -351,6 +363,10 @@ export class VersionManager {
         const request = store.get('version_history');
         request.onsuccess = () => resolve(request.result);
         request.onerror = () => reject(request.error);
+        
+        // Wait for transaction to complete
+        tx.oncomplete = () => {};
+        tx.onerror = () => reject(tx.error);
       });
 
       return history ? history.value : [];
@@ -389,7 +405,11 @@ export class VersionManager {
           value: history,
           updatedAt: Date.now(),
         });
-        request.onsuccess = () => resolve();
+        request.onsuccess = () => {
+          // Wait for transaction to complete before resolving
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => reject(tx.error);
+        };
         request.onerror = () => reject(request.error);
       });
 
