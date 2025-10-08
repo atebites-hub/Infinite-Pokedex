@@ -517,20 +517,29 @@ class RobotsParser {
       if (!trimmed || trimmed.startsWith('#')) continue;
 
       const colonIndex = trimmed.indexOf(':');
-      if (colonIndex === -1) continue;
+      if (colonIndex === -1) {
+        logger.debug(`Skipping malformed robots.txt line (missing colon): ${trimmed}`);
+        continue;
+      }
 
       const directive = trimmed.substring(0, colonIndex).trim().toLowerCase();
       const value = trimmed.substring(colonIndex + 1).trim();
 
-      if (directive.toLowerCase() === 'user-agent') {
+      // Skip lines with empty directive or where directive-only lines lack values
+      if (!directive) {
+        logger.debug(`Skipping malformed robots.txt line (empty directive): ${trimmed}`);
+        continue;
+      }
+
+      if (directive === 'user-agent') {
         currentUserAgent = value.toLowerCase();
-      } else if (directive.toLowerCase() === 'disallow' && currentUserAgent) {
+      } else if (directive === 'disallow' && currentUserAgent) {
         rules.push({
           userAgent: currentUserAgent,
           path: value,
           allow: false,
         });
-      } else if (directive.toLowerCase() === 'allow' && currentUserAgent) {
+      } else if (directive === 'allow' && currentUserAgent) {
         rules.push({
           userAgent: currentUserAgent,
           path: value,

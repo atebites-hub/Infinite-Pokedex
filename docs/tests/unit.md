@@ -416,3 +416,38 @@ NODE_OPTIONS="--experimental-vm-modules" npx jest tests/unit/tidbit-synthesizer.
 - 25 tests total across cache key generation, stats, and response validation
 - All methods properly handle malformed API responses
 - Default fallback values ensure system continues operating even with API errors
+
+---
+
+## robots-parser.test.js
+
+**Location:** `tests/unit/robots-parser.test.js`
+
+**Purpose:** Validates the RobotsParser class in BaseCrawler correctly handles robots.txt parsing including malformed lines, edge cases, and proper validation.
+
+**Key Test Cases:**
+
+### 1. Malformed Line Handling
+- **Skip lines without colons**: Verifies lines missing colons are silently skipped
+- **Skip lines with empty directives**: Validates empty directive lines (e.g., `: value`) are ignored
+- **Debug logging**: Ensures malformed lines trigger appropriate debug log messages
+
+### 2. Edge Cases
+- **Multiple colons in values**: Tests that paths like `/path:with:colons` preserve all colons correctly
+- **Empty values**: Validates handling of directive lines with no value (e.g., `User-agent:`)
+- **Comments and empty lines**: Verifies # comments and blank lines are properly skipped
+
+### 3. Valid Rule Parsing
+- **User-agent parsing**: Tests user-agent directive extraction and lowercase normalization
+- **Disallow rules**: Validates proper creation of disallow rules with correct path values
+- **Allow rules**: Tests proper creation of allow rules with correct path values
+
+**Run Command:**
+```bash
+NODE_OPTIONS="--experimental-vm-modules" npx jest tests/unit/robots-parser.test.js
+```
+
+**Test Coverage:**
+- 5 tests covering all edge cases in robots.txt parsing
+- Validates proper handling of malformed lines without crashes
+- Ensures correct rule extraction from well-formed robots.txt files
