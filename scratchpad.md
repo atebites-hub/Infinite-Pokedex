@@ -1,241 +1,195 @@
 # Infinite Pokédex — Project Scratchpad
 
-This file serves as the central hub for task planning, progress tracking, and agent communication in Infinite Pokédex. It evolves with the project—update sections as you plan, execute, and iterate. Agents use it for TCREI breakdowns, status updates, and feedback. Do not edit without explicit user instruction; reference AGENTS.md for rules.
+This file serves as the central hub for current task planning, progress tracking, and agent communication. It focuses on active work and next steps. For historical information, see [Project History](./docs/project-history.md).
 
-## Background and Motivation
+## Project Overview
 
-Infinite Pokédex is a Progressive Web App inspired by the TikTok account @starstatik, which creates "iceberg" lore videos for Pokémon. Instead of videos, we're building a PWA that generates immersive, ever-changing lore for each Pokémon using on-device AI. The app emulates the Generation 9 Pokédex (Rotom Phone) experience with TikTok-inspired 5-panel "iceberg" lore generation and Web Stable Diffusion artwork.
+**Infinite Pokédex** is a Progressive Web App that generates immersive, ever-changing lore for each Pokémon using on-device AI. Inspired by @starstatik's TikTok "iceberg" lore videos, the app combines:
+- Server-side web crawling (Bulbapedia/Serebii/Smogon) for canonical data
+- Client-side AI generation (WebLLM for lore, WebSD for artwork)
+- Gen 9 Pokédex (Rotom Phone) aesthetic
+- Offline-first PWA architecture
 
-The project combines server-side web crawling of Bulbapedia/Serebii for canonical data and "iceberg" tidbits, with client-side AI generation using WebLLM (Qwen3-small) for lore and WebSD for artwork. This creates an "infinite" experience where each Pokémon entry feels fresh and unique, while maintaining the authentic Gen 9 Pokédex aesthetic.
+## Current Status
 
-## Key Challenges and Analysis
+**Project Phase**: Phase 2 - AI Integration  
+**Current Sprint**: Sprint 4 (WebLLM Integration)  
+**Overall Progress**: 37.5% (3 of 8 sprints complete)  
+**Last Updated**: Sprint 3 completed, ready for Sprint 4
 
-### Assumptions
+### Completed Sprints ✅
 
-- Modern mobile browsers support Service Workers, IndexedDB, and Web Workers
-- WebLLM provides Qwen3-small model suitable for on-device execution
-- WebSD supports image-to-image generation with acceptable performance
-- External sites (Bulbapedia, Serebii) allow respectful scraping within rate limits
-- Users have sufficient device resources for AI model execution
+- **Sprint 1**: Foundation & Setup (Frontend, Server, DevOps)
+- **Sprint 2**: Server Infrastructure Enhancement
+- **Sprint 3**: Client Data Sync & Offline Support
 
-### Counterpoints
+### Current Sprint: Sprint 4 - WebLLM Integration
 
-- **Skeptic**: What if WebLLM/WebSD are too resource-intensive for mobile devices?
-- **Alternative**: Implement server-side generation with aggressive caching and fallbacks
-- **Skeptic**: What if external sites change structure or block scraping?
-- **Alternative**: Use static datasets with manual updates and robust parser error handling
+**Goal**: Implement on-device lore generation using WebLLM (Qwen3-small)
 
-### Alternatives
+**Status**: Ready to begin
 
-- **Option 1**: Use server-side AI generation instead of on-device (simpler but less private)
-- **Option 2**: Use pre-generated content instead of dynamic generation (faster but less "infinite")
-- **Option 3**: Use React/Vue instead of vanilla JS (more complex but potentially better maintainability)
+**Key Tasks**:
+1. [ ] Set up WebLLM and load Qwen3-small model
+2. [ ] Create Web Worker for model execution
+3. [ ] Implement prompt engineering with dSpy
+4. [ ] Generate 5-panel "iceberg" lore format
+5. [ ] Add memory management and fallbacks
+6. [ ] Create lore generation UI
+7. [ ] Write comprehensive tests
+8. [ ] Update documentation
 
-### Risks
+**Success Criteria**:
+- Model loads and runs on-device
+- Generates coherent 5-panel lore
+- Memory usage stays within limits
+- Works offline after initial load
+- 80%+ test coverage
 
-- **Performance**: AI models may be too heavy for low-end devices
-- **Reliability**: External site changes could break crawler
-- **Cost**: CDN and API costs for dataset hosting and LLM services
-- **Compatibility**: Safari PWA limitations and IndexedDB quota differences
+## Next Steps (Immediate)
 
-## High-Level Task Breakdown
+### Sprint 4 Planning
 
-### Phase 1: Foundation (Sprints 1-2)
+**T**: Set up WebLLM and load Qwen3-small model  
+**C**: From Tech Stack Doc, integrate WebLLM library and select smallest Qwen3 model  
+**R**: Use Web Worker for execution; implement progressive loading; handle model download  
+**E**: `webllm-worker.js`, model initialization, memory monitoring  
+**I**: Test model loading on various devices; verify memory usage
 
-1. **T**: Set up project structure and development environment. **C**: From File Structure Doc, create all directories and base files. **R**: Use vanilla HTML/CSS/JS; no frameworks. **E**: `npm init`, `vite.config.js`, basic `index.html`. **I**: Test dev server runs; iterate on structure if needed.
+**T**: Implement prompt engineering with dSpy  
+**C**: From Project Requirements, create prompts that generate 5-panel iceberg lore  
+**R**: Use dSpy for prompt optimization; include metadata and tidbits in context  
+**E**: Prompt templates, context formatting, output parsing  
+**I**: Test prompt quality; iterate based on output coherence
 
-2. **T**: Implement basic PWA manifest and service worker. **C**: From App Flow Doc, create offline-first architecture. **R**: Use standard PWA patterns; manifest must include all required fields. **E**: `manifest.json` with icons, `sw.js` with basic caching. **I**: Test PWA installation on mobile; verify offline functionality.
+**T**: Create lore generation UI  
+**C**: From Frontend Guidelines, build interface for viewing generated lore  
+**R**: Gen 9 aesthetic; show loading states; handle regeneration  
+**E**: Lore viewer component, loading animations, regenerate button  
+**I**: Test UI responsiveness; verify animations work smoothly
 
-3. **T**: Build server-side crawler with respectful scraping. **C**: From Backend Structure Doc, create crawler for Bulbapedia/Serebii. **R**: Respect robots.txt, rate limiting, exponential backoff. **E**: `base-crawler.js`, domain-specific parsers, retry logic. **I**: Test crawling on small dataset; verify compliance.
+## Pending Sprints
 
-4. **T**: Implement data processing and tidbit synthesis. **C**: From Backend Structure Doc, create parser and LLM integration. **R**: Extract canonical metadata; validate against schema. **E**: `parser.js`, `normalizer.js`, OpenRouter integration. **I**: Test parsing accuracy; verify synthesis quality.
+- **Sprint 5**: WebSD Integration (image-to-image generation)
+- **Sprint 6**: UI Polish & Animations (Gen 9 Pokédex feel)
+- **Sprint 7**: Testing & QA (comprehensive testing, security)
+- **Sprint 8**: Deployment & Launch (production deployment, monitoring)
 
-### Phase 2: AI Integration (Sprints 3-5)
+## Key Decisions & Assumptions
 
-5. **T**: Integrate WebLLM for on-device lore generation. **C**: From Tech Stack Doc, implement Qwen3-small model. **R**: Use smallest available model; implement progressive loading. **E**: `webllm-worker.js`, model selection, memory management. **I**: Test model loading; verify generation quality.
+### Technical Decisions
+- **Vanilla HTML/CSS/JS**: For performance and bundle size
+- **On-device AI**: WebLLM/WebSD for privacy and offline capability
+- **CDN Distribution**: For fast global access to dataset
+- **Offline-First**: Service Worker + IndexedDB architecture
 
-6. **T**: Implement WebSD for image-to-image generation. **C**: From Tech Stack Doc, create artwork generation system. **R**: Use base illustrations as init images; optimize for mobile. **E**: `websd-worker.js`, image processing, quality settings. **I**: Test image generation; verify quality and performance.
+### Current Assumptions
+- Modern browsers support Web Workers and WebAssembly
+- WebLLM Qwen3-small model is suitable for mobile devices
+- Users have sufficient device resources (2GB+ RAM)
+- Model download size is acceptable (~500MB-1GB)
 
-7. **T**: Build Gen 9 Pokédex UI with animations. **C**: From Frontend Guidelines, create Rotom-style interface. **R**: Mobile-first design; CSS animations for Gen 9 feel. **E**: Base layout with navigation, card components, color palette. **I**: Test on various screen sizes; refine animations.
-
-### Phase 3: Polish & Deployment (Sprints 6-8)
-
-8. **T**: Implement comprehensive testing suite. **C**: From Testing Guidelines, create unit, security, and integration tests. **R**: 80%+ coverage for all modules; security scan clean. **E**: Jest tests, Playwright E2E, security scanning. **I**: Run full test suite; fix any failures.
-
-9. **T**: Set up production deployment pipeline. **C**: From Backend Structure Doc, implement CI/CD for deployment. **R**: Automated builds, CDN publishing, rollback capability. **E**: GitHub Actions, Docker containers, deployment scripts. **I**: Test deployment pipeline; verify rollback functionality.
-
-10. **T**: Create user documentation and launch preparation. **C**: From Documentation Guidelines, create comprehensive user docs. **R**: Clear instructions, troubleshooting, FAQ. **E**: User guide, help system, video tutorials. **I**: Test documentation; verify clarity and completeness.
-
-## Current Status / Progress Tracking
-
-**Project Status**: Multi-agent Sprint 1 development in progress  
-**Current Sprint**: Sprint 1 (Foundation & Setup) - 2 agents completed, 1 pending  
-**Progress**: 67% (2/3 agents completed)  
-**Last Updated**: Agent 2 (Server Infrastructure) completed
-
-### Completed
-
-- ✅ All 9 core agent reference documents created
-- ✅ Project Requirements Doc with comprehensive scope
-- ✅ App Flow Doc with detailed user journeys
-- ✅ Tech Stack Doc with complete technology specifications
-- ✅ Frontend Guidelines with Gen 9 Pokédex design system
-- ✅ Backend Structure Doc with crawler and CDN architecture
-- ✅ Implementation Plan with 8-sprint roadmap
-- ✅ File Structure Doc with modular organization
-- ✅ Testing Guidelines with comprehensive test strategy
-- ✅ Documentation Guidelines with maintenance standards
-- ✅ README.md with project overview and quick start
-- ✅ scratchpad.md with initial project planning
-- ✅ AGENTS.md updated for Infinite Pokédex
-- ✅ Multi-agent coordination prompts created
-
-### Active Agents (Sprint 1)
-
-- **Agent 1 (Frontend)**: `feature/frontend-foundation` - ✅ COMPLETED - PWA structure, UI, IndexedDB
-- **Agent 2 (Server)**: `feature/server-infrastructure` - Pending - Crawler, parser, LLM integration
-- **Agent 3 (DevOps)**: `feature/dev-environment` - Pending - Testing, CI/CD, automation
-
-### Pending (Future Sprints)
-
-- [ ] Sprint 2: Server Infrastructure (crawler, parser, LLM integration)
-- [ ] Sprint 3: Client Data Sync (offline support, background sync)
-- [ ] Sprint 4: WebLLM Integration (on-device lore generation)
-- [ ] Sprint 5: WebSD Integration (image-to-image generation)
-- [ ] Sprint 6: UI Polish & Animations (Gen 9 Pokédex feel)
-- [ ] Sprint 7: Testing & QA (comprehensive testing, security)
-- [ ] Sprint 8: Deployment & Launch (production deployment, monitoring)
-
-## Project Status Board
-
-### Sprint 1: Multi-Agent Development (Active)
-
-**Agent 1 (Frontend Foundation)**: `feature/frontend-foundation` ✅ COMPLETED
-
-- [x] Set up project structure and Vite development environment
-- [x] Create basic PWA manifest and service worker
-- [x] Implement Gen 9 Pokédex UI foundation with Rotom styling
-- [x] Set up IndexedDB wrapper and data management
-- [x] Create responsive mobile-first design
-
-**Agent 2 (Server Infrastructure)**: `feature/server-infrastructure` ✅ COMPLETED
-
-- [x] Set up Node.js server structure and dependencies
-- [x] Implement respectful web crawler for Bulbapedia/Serebii
-- [x] Build HTML parser and data normalizer
-- [x] Integrate OpenRouter LLM for tidbit synthesis
-- [x] Create dataset builder and CDN publisher
-- [x] Add Smogon crawler for Strategy Pokedex and forums
-
-**Agent 3 (Development Environment)**: `feature/dev-environment`
-
-- [ ] Create development scripts and automation
-- [ ] Set up Jest testing framework with 80%+ coverage
-- [ ] Implement Playwright for E2E testing
-- [ ] Configure ESLint, Prettier, and security scanning
-- [ ] Set up GitHub Actions CI/CD pipeline
-
-### Future Sprints (Pending)
-
-- [ ] Sprint 2: Server Infrastructure completion
-- [ ] Sprint 3: Client Data Sync (offline support, background sync)
-- [ ] Sprint 4: WebLLM Integration (on-device lore generation)
-- [ ] Sprint 5: WebSD Integration (image-to-image generation)
-- [ ] Sprint 6: UI Polish & Animations (Gen 9 Pokédex feel)
-- [ ] Sprint 7: Testing & QA (comprehensive testing, security)
-- [ ] Sprint 8: Deployment & Launch (production deployment, monitoring)
+### Known Risks
+- **Performance**: AI models may be heavy for low-end devices
+- **Memory**: Model execution may exceed browser limits
+- **Download**: Large model size may deter users
+- **Compatibility**: Safari limitations with WebAssembly
 
 ## Agent Feedback & Assistance Requests
 
-### Multi-Agent Coordination Status
+### Current Blockers
+None - Ready to begin Sprint 4
 
-- **Sprint 1 Active**: 3 parallel agents working on independent tasks
-- **No Cross-Dependencies**: Each agent can work independently
-- **Communication**: Primary via scratchpad.md updates, secondary via GitHub issues
-- **Branch Strategy**: Each agent has dedicated feature branch
+### Questions for User
+1. Should we implement a "lite" mode for low-end devices?
+2. What's the acceptable model download size?
+3. Should we cache generated lore or regenerate each time?
+4. Priority: Quality vs. Speed for lore generation?
 
-### Agent-Specific Notes
+### Technical Decisions Needed
+1. Model selection: Smallest Qwen3 vs. performance trade-off
+2. Prompt strategy: Single prompt vs. multi-step generation
+3. Caching strategy: Cache lore or always regenerate
+4. Fallback strategy: What to show if model fails to load
 
-**Agent 1 (Frontend)**: ✅ COMPLETED - PWA structure, Gen 9 UI, IndexedDB wrapper
-**Agent 2 (Server)**: ✅ COMPLETED - Crawler, parser, LLM integration, CDN publishing  
-**Agent 3 (DevOps)**: Pending - Testing, CI/CD, automation, quality gates
+## Resources & References
 
-### Agent 2 (Server Infrastructure) - COMPLETED
+### Core Documentation
+- [Project Requirements](./docs/agents/Project Requirements Doc.md)
+- [Implementation Plan](./docs/agents/Implementation Plan.md)
+- [Tech Stack](./docs/agents/Tech Stack Doc.md)
+- [Frontend Guidelines](./docs/agents/Frontend Guidelines.md)
 
-**Accomplishments:**
+### Technical Documentation
+- [CDN Sync System](./docs/code/sync.md)
+- [Version Management](./docs/code/version.md)
+- [Offline Support](./docs/code/offline.md)
+- [Service Worker](./docs/code/devops.md)
 
-- ✅ Complete Node.js server structure with modular architecture
-- ✅ Respectful web crawler with rate limiting and robots.txt compliance
-- ✅ HTML parser using Cheerio with domain-specific extractors
-- ✅ OpenRouter LLM integration for tidbit synthesis with safety filters
-- ✅ Dataset builder with versioning and content hashing
-- ✅ CDN publisher with atomic updates and rollback support
-- ✅ Comprehensive configuration system for multiple CDN providers
-- ✅ Structured logging and error handling
-- ✅ Test suite and documentation
+### External Resources
+- [WebLLM Documentation](https://github.com/mlc-ai/web-llm)
+- [dSpy Framework](https://github.com/stanfordnlp/dspy)
+- [WebSD Documentation](https://github.com/mlc-ai/web-stable-diffusion)
 
-**Key Features Implemented:**
+## Recent Lessons
 
-- Rate limiting with exponential backoff and circuit breakers
-- Multi-source data normalization and validation
-- LLM-powered tidbit generation with quality controls
-- Atomic CDN publishing with version management
-- Support for AWS S3, Cloudflare R2, and Vercel Blob
-- Comprehensive error handling and logging
-- Smogon Strategy Pokedex crawler for competitive data
-- Smogon forums crawler for community discussions and tidbits
+### Sprint 3 Learnings
+- **Chunked Downloads**: 100 items per chunk works well for memory
+- **Resume Capability**: Checkpoint system essential for large downloads
+- **Cache Strategies**: Separate caches by content type improves performance
+- **Integrity Checks**: SHA-256 verification catches corrupted downloads
+- **Offline UX**: Clear messaging and auto-retry improves user experience
 
-### Key Decisions Made
+### Bug Fixes
+- **Inconsistent Block Scoping in Switch Statement**: Fixed inconsistent block scoping in models.js validateResponse() switch statement (lines 236-252). The `validation` case had explicit block scope with curly braces, but `tidbitSynthesis` and `safetyFilter` cases didn't. This inconsistency could lead to unexpected variable declaration conflicts in cases lacking their own block scope. Added explicit block scoping (`{ ... }`) to all three cases for consistency and safety. All validation tests pass after the fix. (Fixed: October 8, 2025)
+- **IndexedDB Transaction Completion Bug**: Fixed IndexedDB operations not waiting for transaction completion in version.js, sync.js, and offline.js. While operations were properly wrapped in Promises with `onsuccess`/`onerror` callbacks, they weren't waiting for the transaction's `oncomplete` event. This meant that write operations (`readwrite` transactions) could resolve before data was actually committed to the database. Added `tx.oncomplete` and `tx.onerror` event handlers to all IndexedDB operations to ensure transactions fully complete before the Promise resolves. This affected 5 methods in version.js (initialize, updateVersion, reset, getVersionHistory, addToHistory), 6 methods in sync.js (getCurrentVersion, storeSpecies, saveCheckpoint, getCheckpoint, clearCheckpoint, saveVersion), and 3 methods in offline.js (storeError, getStoredErrors, clearStoredErrors). All 69 unit tests pass after the fix. (Fixed: October 8, 2025)
+- **Logger Import Issue**: Fixed logger.js to export a logger object instead of individual functions. Modules were importing `{ logger }` expecting an object with methods like `logger.info()`, but the module was exporting individual functions. Changed to export a single logger object with debug/info/warn/error methods. This affected version.js, sync-ui.js, offline.js, and sync.js. (Fixed: October 2025)
+- **Offline Manager Fetch Event**: Removed ineffective `fetch` event listener from OfflineManager.setupEventListeners(). The code was trying to intercept fetch requests on the `window` object (lines 33-39), but `fetch` events are only dispatched in Service Worker contexts, not in the main thread. This listener would never fire, making it dead code. The OfflineManager already properly detects connectivity through `online` and `offline` events, which are the correct approach for the main thread. (Fixed: October 2025)
 
-- **Technology Choice**: Vanilla HTML/CSS/JS over frameworks for performance
-- **AI Approach**: On-device generation with WebLLM/WebSD for privacy
-- **Architecture**: Server-side crawling + client-side generation + CDN publishing
-- **UI Design**: Gen 9 Pokédex (Rotom Phone) aesthetic with mobile-first approach
-- **Multi-Agent**: Parallel development with no cross-dependencies
+### Best Practices
+- **Documentation First**: Write docs before/during implementation
+- **Test Coverage**: 80%+ coverage catches most issues
+- **Error Handling**: Comprehensive error handling prevents silent failures
+- **User Feedback**: Progress indicators essential for long operations
+- **Graceful Degradation**: Always provide fallbacks
+- **Export Consistency**: When exporting utilities, prefer object exports over individual functions for better namespace management
+- **IndexedDB Promises**: Always wrap IndexedDB operations in proper Promises and wait for transaction completion. Native IndexedDB uses callbacks (`onsuccess`/`onerror`), not awaitable properties. Don't use `await tx.complete` or `await store.get()` - wrap them in `new Promise((resolve, reject) => { ... })`. For write operations (`readwrite` transactions), always wait for `tx.oncomplete` to ensure data is committed before resolving the Promise. For read operations, set `tx.oncomplete = () => {}` and `tx.onerror` handlers to ensure proper transaction handling.
+- **Switch Statement Block Scoping**: Always use explicit block scope (`{ ... }`) for all cases in switch statements to prevent variable declaration conflicts and maintain consistency across cases
 
-### Coordination Protocol
+## Development Commands
 
-- **Daily Updates**: Each agent updates scratchpad with progress and blockers
-- **Conflict Resolution**: Use feature branches and coordinate through scratchpad
-- **Success Metrics**: All tasks complete within 2 weeks, tests pass, documentation updated
+```bash
+# Development
+npm run dev                 # Start dev server
+npm run build              # Build for production
 
-## Lessons
+# Testing
+npm test                   # Run all tests
+npm run test:unit          # Run unit tests
+npm run test:integration   # Run E2E tests
+npm run test:security      # Run security scans
+npm run test:coverage      # Generate coverage report
 
-### Project Setup Lessons
+# Linting
+npm run lint               # Run ESLint
+npm run lint:fix           # Fix linting issues
+npm run lint:security      # Run security linting
+npm run format             # Format with Prettier
 
-- **Documentation First**: Comprehensive agent reference documents provide clear context boundaries
-- **TCREI Structure**: Task, Context, Rules, Examples, Iteration format ensures clear implementation guidance
-- **Mobile-First**: Vanilla HTML/CSS/JS approach prioritizes performance and bundle size
-- **AI Integration**: On-device generation balances privacy with performance requirements
+# Docker
+npm run docker:build       # Build Docker images
+npm run docker:up          # Start containers
+npm run docker:down        # Stop containers
+```
 
-### Technical Lessons
+## Notes
 
-- **WebLLM/WebSD**: On-device AI generation requires careful resource management and fallbacks
-- **PWA Architecture**: Offline-first design with IndexedDB and Service Worker caching
-- **Gen 9 Aesthetics**: CSS animations and transforms can recreate game-like feel without frameworks
-- **Respectful Crawling**: Rate limiting and robots.txt compliance essential for sustainable scraping
-- **Configuration Architecture**: BaseCrawler should use defaultConfig directly, not try to get 'default' source config
-- **Rate Limiting Bug Fix**: Fixed RateLimiter.wait() method to properly handle fractional requestsPerSecond and prevent burstTokens from becoming permanently zero
-- **CLI Detection Bug Fix**: Fixed CLI detection logic in index.js to use more robust path comparison that handles undefined process.argv[1] and cross-platform path differences by using import.meta.url comparison as primary method with fallback to fileURLToPath() and resolve() comparison
-- **Robots.txt Parser Bug Fix**: Fixed RobotsParser.parseRobotsTxt() method to skip lines without colons, preventing undefined value variables that could cause unexpected behavior when processing robots.txt rules
-- **Cache Key Bug Fix**: Fixed TidbitSynthesizer.getCacheKey() method to include forum data in cache key and use full SHA-256 hash instead of truncated hash, preventing stale tidbits when forum discussions change and reducing hash collision risk
-- **Cache Key Generation Bug Fix**: Fixed TidbitSynthesizer.enrichSpecies() method to handle getForumData() failures gracefully without breaking cache key generation, ensuring stable cache keys even when forum data is unavailable or inconsistent
-- **Cache Key Normalization Bug Fix**: Fixed TidbitSynthesizer.getCacheKey() method to normalize forum data by using a consistent placeholder ('no-forum-data') when forum data is empty or undefined, preventing cache misses due to inconsistent empty string values
-- **Test Refactoring**: Moved test-cache-key.js to tests/unit/ directory and created comprehensive test suite with cache-key-fix.test.js and cache-key-fix-runner.js for proper test structure and Jest integration
-- **Text Cleaning Bug Fix**: Fixed regex pattern in DataProcessor.cleanText() and sanitizeText() functions to preserve valid punctuation like apostrophes, parentheses, and colons while still removing invalid special characters, preventing corruption of Pokémon names and descriptions
-- **Unicode Character Preservation Bug Fix**: Fixed sanitizeText() function in validation.js and cleanText() methods in parser.js and serebii.js to use Unicode property escapes (\p{L}, \p{N}) instead of \w, preserving accented characters (é, ñ), gender symbols (♀, ♂), and other Unicode characters in Pokémon names like Flabébé, Farfetch'd, and Nidoran♀/♂. Also improved HTML tag removal to use proper regex pattern `/<[^>]*>/g` instead of just removing `<>` characters. Created comprehensive test suite (validation-runner.js) with 18 passing tests to verify Unicode preservation.
-- **SerebiiCrawler Data Extraction Bug Fix**: Fixed SerebiiCrawler class to replace hardcoded placeholder values with actual HTML parsing using Cheerio, enabling proper extraction of Pokémon data from Serebii pages including name, types, stats, abilities, moves, description, locations, and evolution information
-- **Robots.txt Multiple Colons Bug Fix**: Fixed RobotsParser.parseRobotsTxt() method in BaseCrawler to properly handle lines containing multiple colons by using indexOf(':') and substring() instead of split(':'), ensuring complete value preservation for robots.txt rules like "Disallow: /path:with:colons"
-- **Robots.txt Malformed Lines Handling**: Enhanced RobotsParser.parseRobotsTxt() method in BaseCrawler to add comprehensive validation and logging for malformed robots.txt lines including: (1) debug logging when lines are missing colons, (2) validation to skip lines with empty directives, (3) debug logging for empty directive lines. Also removed redundant .toLowerCase() calls on already-lowercased directive variables. Added comprehensive test suite (robots-parser.test.js) with 5 passing tests covering edge cases like missing colons, empty directives, multiple colons in values, empty values, and comment handling
-- **Rate Limiter Burst Token Logic Bug Fix**: Fixed RateLimiter.wait() method in BaseCrawler to properly handle burst token consumption and refill during wait periods, preventing burstTokens from becoming permanently zero or negative by accounting for time elapsed during waits and using Math.max(0, burstTokens - 1) for token consumption
-- **Rate Limiter Minute Limit Check Bug Fix**: Fixed minute limit check in RateLimiter.wait() method to safely handle empty requests array by checking array length before using Math.min(...this.requests), preventing runtime errors when no previous requests exist
-- **LLM Response Validation Bug Fix**: Fixed TidbitSynthesizer methods (generateTidbits, generateTidbitsFallback, checkSafety, checkQuality) to validate OpenRouter API response structure before accessing nested properties like response.data.choices[0].message.content, preventing runtime errors when API returns empty or malformed responses. Created reusable extractResponseContent() helper method with comprehensive validation of response structure including checks for null response, missing data, invalid choices array, empty choices, missing message, and invalid content. Added descriptive error messages with context for better debugging. All existing inline validation replaced with helper method calls for consistency and maintainability. Updated test suite with 25 passing tests including 10 new tests for extractResponseContent() method covering all edge cases. Updated package.json to enable Jest experimental ES modules support with NODE_OPTIONS='--experimental-vm-modules' flag
+- **Branch**: Create `feature/webllm-integration` for Sprint 4
+- **Testing**: Focus on memory usage and model performance
+- **Documentation**: Update as implementation progresses
+- **Code Review**: Request review before merging to main
 
-### Process Lessons
+---
 
-- **Agent Coordination**: Clear documentation boundaries prevent scope creep and conflicts
-- **Sprint Planning**: 8-sprint structure provides manageable development phases
-- **Quality Gates**: Comprehensive testing and security scanning ensure production readiness
-- **Documentation Maintenance**: Living documentation that evolves with code changes
-
-**Next Steps**: Begin Sprint 1 implementation with foundation setup and basic PWA structure.
+**Last Updated**: Sprint 3 completion  
+**Next Review**: After Sprint 4 Task 1 completion
