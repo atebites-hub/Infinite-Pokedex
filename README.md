@@ -1,175 +1,151 @@
-# Agentic Coding Project Template
+# Infinite Pokédex
 
-A comprehensive, production-ready template for AI-assisted software development projects using modern agentic coding practices. This template provides structured workflows, documentation frameworks, and quality gates specifically designed for collaboration between human developers and AI agents like Cursor, Claude, and others.
+Infinite Pokédex is a Progressive Web App (PWA) that generates immersive, ever-changing lore for each Pokémon using on-device AI. Built with vanilla HTML/CSS/JS, it emulates the Generation 9 Pokédex (Rotom Phone) experience with TikTok-inspired "iceberg" lore generation and Web Stable Diffusion artwork.
 
-## What is Agentic Coding?
+## Quick Start
 
-Agentic coding represents a paradigm shift in software development where AI agents (like Cursor, Claude, Cline, and others) work alongside human developers as collaborative partners. This template provides the structural framework, documentation standards, and workflow patterns that make this collaboration effective, scalable, and maintainable.
+1. **Clone the repo**: `git clone https://github.com/your-username/infinite-pokedex.git`
+2. **Install dependencies**: Run `/scripts/setup.sh` (installs Node.js dependencies and development tools)
+3. **Set up environment**: Copy `.env.example` to `.env` and fill in values (OpenRouter API key, CDN settings)
+4. **Launch dev mode**: `./scripts/run-dev.sh` (starts Vite dev server and crawler)
+5. **Run tests**: `./scripts/test-suite.sh` (unit, security, integration, performance)
 
-## 🚀 Key Features
+## Project Overview
 
-- **🧠 AI-Centric Architecture**: Designed specifically for human-AI collaboration with clear scope boundaries and communication protocols
-- **📋 TCREI Task Framework**: Structured task decomposition (Task, Context, Rules, Examples, Iteration) for reliable execution
-- **📚 Living Documentation**: Mandatory documentation updates ensure project knowledge remains current and accessible
-- **🔒 Quality Gates**: Built-in testing requirements, security scans, and validation protocols
-- **🤝 Agent Communication Hub**: Centralized scratchpad.md for seamless human-AI-agent coordination
-- **🧪 Test-Driven Development**: Integrated testing workflows with 80%+ coverage requirements
-- **📊 Progress Tracking**: Visual project status boards and milestone management
-- **🔄 Intellectual Rigor**: Built-in assumption analysis and critical thinking frameworks
+Infinite Pokédex combines:
+- **Server-side crawling** of Bulbapedia, Serebii, and Pokémon forums for canonical data and "iceberg" tidbits
+- **On-device AI generation** using WebLLM (Qwen3-small) for lore and Web Stable Diffusion for artwork
+- **Offline-first PWA** with IndexedDB caching and Service Worker background sync
+- **Gen 9 Pokédex UI** with smooth animations and mobile-first responsive design
 
-## 📁 Template Structure
+Each time you open a Pokémon entry, the app generates fresh lore in 5-panel "iceberg" style (like the TikTok account @starstatik) and creates contextual artwork using image-to-image generation.
+
+## Project Structure
+
+Follow the layout in `/docs/agents/File Structure Doc.md` for modularity:
 
 ```
-PJTemplate/
-├── docs/
-│   ├── agents/           # Core project governance (9 documents)
-│   │   ├── AGENTS.md              # Rules and scope boundaries for AI agents
-│   │   ├── project_requirements_doc.md    # Project objectives and features
-│   │   ├── app_flow_doc.md        # User flows and state transitions
-│   │   ├── tech_stack_doc.md      # Technology choices and APIs
-│   │   ├── frontend_guidelines.md # UI/UX standards and components
-│   │   ├── backend_structure_doc.md       # Architecture and security
-│   │   ├── implementation_plan.md # Sprint roadmap with TCREI tasks
-│   │   ├── file_structure_doc.md  # File organization standards
-│   │   ├── testing_guidelines.md  # Test types and validation
-│   │   └── documentation_guidelines.md    # Documentation standards
-│   ├── code/             # Auto-generated code documentation
-│   └── tests/            # Test documentation and results
-├── source/               # Main application code
-│   ├── backend/         # Backend implementation
-│   └── client/          # Frontend/client code
-├── tests/               # Test suites
-│   ├── unit/           # Unit tests
-│   ├── integration/    # Integration tests
-│   └── security/       # Security tests
-├── scripts/             # Build, test, and deployment scripts
-├── scratchpad.md        # Central project management hub
-└── AGENTS.md           # Root-level agent rules (copy of docs/agents/AGENTS.md)
+/source/
+├── client/          # PWA frontend (vanilla HTML/CSS/JS)
+├── server/          # Node.js crawler and API
+/scripts/            # Build and utility scripts
+/tests/              # Test suites (unit, security, integration)
+/docs/               # Documentation
+├── agents/          # Agent reference documents
+├── code/            # Code documentation
+└── tests/           # Test documentation
 ```
 
-## 🛠️ Quick Start - Using This Template
+## Key Documents
 
-### 1. Create Your Project
+- **AGENTS.md**: Rules for AI agents (Cursor, Claude, etc.)
+- **scratchpad.md**: Current tasks and progress tracking
+- **Implementation Plan**: Sprint roadmap in `/docs/agents/Implementation Plan.md`
+- **Project Requirements**: High-level objectives in `/docs/agents/Project Requirements Doc.md`
+- **Tech Stack**: Technologies and dependencies in `/docs/agents/Tech Stack Doc.md`
+
+## Development Workflow
+
+### Prerequisites
+- Node.js v18+ with npm
+- Modern mobile browser (Chrome Android, Safari iOS)
+- Docker (for crawler development)
+
+### Development Commands
 ```bash
-# Using GitHub (recommended)
-1. Click "Use this template" button on GitHub
-2. Create your new repository
-3. Clone locally: git clone <your-repo-url>
-
-# Or manually
-git clone <this-repo-url> <your-project-name>
-cd <your-project-name>
-```
-
-### 2. Customize the Template
-```bash
-# Update project name throughout the template
-find . -name "*.md" -type f -exec sed -i 's/PJTemplate/YourProjectName/g' {} +
-find . -name "*.md" -type f -exec sed -i 's/\[Project Name\]/Your Project Name/g' {} +
-
-# Edit core documents in /docs/agents/ to match your project
-# Start with: project_requirements_doc.md
-```
-
-### 3. Set Up Development Environment
-```bash
-# Run the setup script (customize for your tech stack)
+# Setup project
 ./scripts/setup.sh
 
-# Or manually install dependencies based on your chosen technologies
-npm install  # for Node.js projects
-pip install -r requirements.txt  # for Python projects
-```
-
-### 4. Start Development
-```bash
-# Launch development mode
+# Start development
 ./scripts/run-dev.sh
 
-# Run tests to ensure everything works
+# Run tests
 ./scripts/test-suite.sh
 
-# Open scratchpad.md and start your first sprint!
+# Build for production
+./scripts/build.sh
+
+# Deploy to CDN
+./scripts/deploy.sh
 ```
 
-## 📖 How to Use This Template Effectively
+### Testing
+- **Unit Tests**: Jest for client/server components (80%+ coverage)
+- **Security Tests**: XSS protection, privacy compliance, vulnerability scanning
+- **Integration Tests**: Playwright for PWA functionality and AI generation
+- **Performance Tests**: <3s TTI, <2MB bundle size targets
 
-### For Project Managers/Technical Leads
-1. **Start with Core Documents**: Begin by filling out the 9 documents in `/docs/agents/` to establish your project foundation
-2. **Define Clear Boundaries**: Use `AGENTS.md` to set scope limitations for AI agents
-3. **Plan in Sprints**: Use the Implementation Plan to break work into manageable phases
-4. **Monitor Progress**: Use `scratchpad.md` as your daily project dashboard
+## Technology Stack
 
-### For AI Agents (Cursor, Claude, etc.)
-1. **Read the Rules**: Always start by reading `AGENTS.md` for project scope and guidelines
-2. **Check Current Status**: Review `scratchpad.md` for active tasks and progress
-3. **Follow TCREI Format**: Structure all tasks using Task-Context-Rules-Examples-Iteration
-4. **Update Documentation**: Maintain `/docs/code/` and `/docs/tests/` as you work
-5. **Communicate via Scratchpad**: Use `scratchpad.md` for progress updates and questions
+### Frontend
+- **Core**: Vanilla HTML5, CSS3, JavaScript ES2020+
+- **PWA**: Web App Manifest, Service Worker, IndexedDB
+- **AI**: WebLLM (Qwen3-small), Web Stable Diffusion
+- **Build**: Vite for development and production builds
 
-### For Development Teams
-1. **Collaborative Planning**: Use the intellectual sparring sections in `scratchpad.md`
-2. **Code Quality**: Maintain 80%+ test coverage and run security scans
-3. **Documentation First**: Update documentation before marking tasks complete
-4. **Regular Sync**: Use the Project Status Board for sprint planning and reviews
+### Backend
+- **Runtime**: Node.js v18+ with Express.js
+- **Crawling**: Puppeteer, Cheerio for web scraping
+- **AI**: OpenRouter API for tidbit synthesis
+- **Storage**: Local disk cache, CDN for dataset publishing
 
-## 🔧 Customization Guide
+### Development
+- **Testing**: Jest, Playwright, ESLint, Prettier
+- **Deployment**: Docker, GitHub Actions, CDN publishing
+- **Documentation**: JSDoc, Mermaid diagrams, Markdown
 
-### Adapting for Your Project Type
-- **Web Applications**: Emphasize frontend_guidelines.md and app_flow_doc.md
-- **APIs/Microservices**: Focus on backend_structure_doc.md and tech_stack_doc.md
-- **Games/Interactive Apps**: Prioritize app_flow_doc.md and user experience flows
-- **Data/ML Projects**: Enhance with ML-specific testing and validation guidelines
+## Features
 
-### Technology Stack Integration
-The template is technology-agnostic but includes examples for:
-- **Frontend**: React, Vue, Svelte, vanilla JavaScript
-- **Backend**: Node.js, Python, Rust, Go
-- **Mobile**: React Native, Flutter, native iOS/Android
-- **Database**: PostgreSQL, MongoDB, Redis
+### Core Functionality
+- **Dynamic Lore Generation**: Each Pokémon entry generates fresh 5-panel "iceberg" lore
+- **Image Generation**: WebSD creates contextual artwork for each lore panel
+- **Offline Support**: Full functionality after initial sync, works without internet
+- **Gen 9 Aesthetics**: Rotom Phone UI with smooth animations and mobile-first design
 
-### Quality Gates Customization
-Modify the quality gates in `AGENTS.md` based on your needs:
-- Testing frameworks and coverage requirements
-- Security scanning tools for your tech stack
-- Performance benchmarks and validation criteria
+### AI Integration
+- **WebLLM**: On-device lore generation using Qwen3-small model
+- **WebSD**: Image-to-image generation using base Pokémon illustrations
+- **dSpy Framework**: Optimized prompting for high-quality content generation
+- **Fallback Handling**: Graceful degradation for low-end devices
 
-## 🤝 Contributing & Community
+### Data Management
+- **Respectful Crawling**: Compliant web scraping with rate limiting
+- **Versioned Datasets**: Atomic updates with rollback capability
+- **Client Caching**: IndexedDB with adaptive quota management
+- **Background Sync**: Opportunistic updates when online
 
-### Improving the Template
-We welcome contributions to make this template better for the agentic coding community:
+## Contributing
 
-1. **Bug Reports**: Found issues with the template structure or documentation?
-2. **Feature Requests**: Have ideas for additional template sections or workflows?
-3. **Technology Updates**: Know of better tools or practices for AI-assisted development?
+- Reference **AGENTS.md** for project scope and guidelines
+- Run tests before submitting PRs (`./scripts/test-suite.sh`)
+- Update documentation as per `/docs/agents/Documentation Guidelines.md`
+- Follow TCREI task structure from Implementation Plan
+- Ensure 80%+ test coverage for new code
 
-### Support & Resources
-- **Documentation**: Full guide in `/docs/agents/documentation_guidelines.md`
-- **Examples**: See completed projects using this template structure
-- **Community**: Connect with other teams using agentic coding practices
+## Browser Support
 
-## 📋 Project Status & Roadmap
+- **Primary**: Chrome Android, Safari iOS/macOS (PWA support)
+- **Features**: Service Workers, IndexedDB, WebLLM, WebSD
+- **Fallbacks**: Graceful degradation for older browsers
+- **Testing**: Real device testing on mid-range Android and iPhone
 
-**Current Version**: 1.0.0 - Production Ready
-**Last Updated**: September 2025
+## Performance Targets
 
-**Recent Enhancements**:
-- Enhanced TCREI task framework with iteration planning
-- Improved agent communication protocols
-- Added intellectual sparring frameworks for critical analysis
-- Expanded quality gates with security scanning requirements
+- **Bundle Size**: <2MB total for fast mobile loading
+- **Time to Interactive**: <3s on mid-range mobile devices
+- **Offline Functionality**: 100% feature parity when offline
+- **AI Generation**: <6s for lore + artwork generation
 
-**Planned Improvements**:
-- Visual dashboard generation for project metrics
-- Integration templates for popular frameworks
-- Enhanced testing workflow automation
-- Community-contributed project examples
+## Security & Privacy
 
-## 📄 License
+- **No User Data**: All generation occurs on-device
+- **Respectful Crawling**: Compliant with robots.txt and rate limits
+- **Content Filtering**: Safety filters for generated content
+- **Attribution**: Proper licensing and source attribution
 
-MIT License - Feel free to use, modify, and distribute this template for your projects.
+## License
 
----
+MIT License - see LICENSE file for details
 
-**Assumptions**: This template assumes familiarity with AI-assisted development practices and modern software engineering principles.
-**Known Benefits**: Proven to reduce project overhead by 60% while maintaining code quality in AI-human collaborative environments.
+**Assumptions**: Modern mobile browsers with PWA support, Node.js v18+, sufficient device resources for AI models.  
+**Known Issues**: Low-end devices may require quality scaling; Safari has different IndexedDB quotas; we implement adaptive fallbacks.

@@ -2,11 +2,11 @@
 
 ## Project Scope Definition
 
-These rules define the limitations and scope for AI agents (e.g., Cursor, Claude, Cline, Kilo) working on [Project Name]. All work must align with the [Number] core documentation files in `/docs/agents/` that serve as the single source of truth for project requirements, architecture, and implementation guidelines. Agents from any tool must reference these rules as the project's global context boundary.
+These rules define the limitations and scope for AI agents (e.g., Cursor, Claude, Cline, Kilo) working on Infinite Pokédex. All work must align with the 9 core documentation files in `/docs/agents/` that serve as the single source of truth for project requirements, architecture, and implementation guidelines. Agents from any tool must reference these rules as the project's global context boundary.
 
 ### Core Reference Documents
 
-The following [Number] documents in `/docs/agents/` define your context boundary and must be referenced for all work:
+The following 9 documents in `/docs/agents/` define your context boundary and must be referenced for all work:
 
 1. **[Project Requirements Doc.md](mdc:docs/agents/Project Requirements Doc.md)** - Defines general requirements, high-level objectives, user flows, tech stack, and core features.
 2. **[App Flow Doc.md](mdc:docs/agents/App Flow Doc.md)** - Describes user flows, data flows, and state transitions.
@@ -18,22 +18,23 @@ The following [Number] documents in `/docs/agents/` define your context boundary
 8. **[Testing Guidelines.md](mdc:docs/agents/Testing Guidelines.md)** - Describes test types, setup, and sprint-end checks.
 9. **[Documentation Guidelines.md](mdc:docs/agents/Documentation Guidelines.md)** - Defines doc formats, policies, and maintenance.
 
-## Guidelines for Filling Out This Template
-- Replace [Project Name] with your project's name (e.g., "My API Service" or "Game App").
-- Set [Number] to the count of core docs (default 9; adjust if needed).
-- Customize consultation/quality gates for your domain (e.g., add "API rate limits" for backend-heavy projects).
-- For multi-agent use: Ensure links work across tools (e.g., mdc: for Markdown previews); test in Cursor/Claude.
-- Reference repo structure: Store this as root/AGENTS.md; link to /file_structure.md for agent file impacts.
+## Project-Specific Guidelines
+- **Project**: Infinite Pokédex - Progressive Web App with AI-generated Pokémon lore
+- **Core Docs**: 9 reference documents in `/docs/agents/` define project scope
+- **Technology Focus**: Vanilla HTML/CSS/JS, WebLLM, WebSD, Node.js crawler, PWA architecture
+- **Quality Gates**: 80%+ test coverage, security scanning, Gen 9 Pokédex UI standards
+- **Multi-Agent Coordination**: Links work across tools (mdc: for Markdown previews); tested in Cursor/Claude
+- **File Structure**: Reference `/docs/agents/File Structure Doc.md` for agent file impacts
 
 ## Development Workflow Requirements
 
 ### Before Starting Any Work
 
 1. **Read Current State**: Review `scratchpad.md` for current progress, context, and task breakdowns.
-2. **Reference Documents**: Consult the [Number] core documents for requirements, flows, and standards.
+2. **Reference Documents**: Consult the 9 core documents for requirements, flows, and standards.
 3. **Task Structure**: Use TCREI format for all tasks (Task, Context, Rules, Examples, Iteration).
 4. **Test Coverage**: Achieve 80%+ test coverage for new code; run `/scripts/test-suite.sh` before commits.
-5. **Security Review**: Run security scans (e.g., [tool: cargo-audit for Rust, ESLint-plugin-security for JS]) before completion.
+5. **Security Review**: Run security scans (ESLint-plugin-security for JS, npm audit, dependency scanning) before completion.
 
 ### Documentation Requirements
 
@@ -50,7 +51,7 @@ The following [Number] documents in `/docs/agents/` define your context boundary
 
 **MANDATORY**: Consult the human user before:
 
-1. **Working Outside Scope**: Any work not explicitly covered in the [Number] reference documents.
+1. **Working Outside Scope**: Any work not explicitly covered in the 9 reference documents.
 2. **Technology Changes**: Introducing new technologies or libraries.
 3. **Architecture Modifications**: Changing backend structure or file organization.
 4. **Sprint Deviations**: Working on tasks outside current sprint in Implementation Plan.md.
@@ -62,7 +63,7 @@ The following [Number] documents in `/docs/agents/` define your context boundary
 ### Before Marking Tasks Complete
 
 1. **Unit Tests**: All tests pass with 80%+ coverage (run `/scripts/test-suite.sh`).
-2. **Security Scan**: No high/critical vulnerabilities (e.g., [tool: cargo-audit] clean).
+2. **Security Scan**: No high/critical vulnerabilities (ESLint-plugin-security clean, npm audit clean).
 3. **Code Review**: Follow coding standards (e.g., docstrings with Description, Preconditions, Postconditions, Parameters, Returns).
 4. **Documentation**: All code documented with proper docstrings; `/docs/code/` and `/docs/tests/` updated.
 5. **Integration**: Works with existing system components.
