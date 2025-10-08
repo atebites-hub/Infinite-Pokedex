@@ -12,7 +12,7 @@
  */
 
 import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+import { dirname, join, resolve } from 'path';
 import { logger } from './utils/logger.js';
 import { BaseCrawler } from './crawler/base-crawler.js';
 import { BulbapediaCrawler } from './crawler/bulbapedia.js';
@@ -167,7 +167,11 @@ class InfinitePokedexServer {
 }
 
 // CLI interface
-if (fileURLToPath(import.meta.url) === process.argv[1]) {
+const currentModulePath = fileURLToPath(import.meta.url);
+const scriptPath = resolve(process.argv[1]);
+const isMainModule = currentModulePath === scriptPath;
+
+if (isMainModule) {
   const server = new InfinitePokedexServer();
   
   // Handle command line arguments

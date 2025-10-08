@@ -211,7 +211,7 @@ The project combines server-side web crawling of Bulbapedia/Serebii for canonica
 - **Respectful Crawling**: Rate limiting and robots.txt compliance essential for sustainable scraping
 - **Configuration Architecture**: BaseCrawler should use defaultConfig directly, not try to get 'default' source config
 - **Rate Limiting Bug Fix**: Fixed RateLimiter.wait() method to properly handle fractional requestsPerSecond and prevent burstTokens from becoming permanently zero
-- **CLI Detection Bug Fix**: Fixed CLI detection logic in index.js to properly compare file paths using fileURLToPath() instead of string comparison
+- **CLI Detection Bug Fix**: Fixed CLI detection logic in index.js to properly compare file paths using fileURLToPath() and resolve() for reliable path comparison instead of direct string comparison
 - **Robots.txt Parser Bug Fix**: Fixed RobotsParser.parseRobotsTxt() method to skip lines without colons, preventing undefined value variables that could cause unexpected behavior when processing robots.txt rules
 - **Cache Key Bug Fix**: Fixed TidbitSynthesizer.getCacheKey() method to use stable data fields only (excluding tidbits array) and SHA-256 hashing instead of truncated base64, preventing cache invalidation and hash collisions
 

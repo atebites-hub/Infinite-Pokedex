@@ -10,6 +10,7 @@
  */
 
 import axios from 'axios';
+import crypto from 'crypto';
 import { logger } from '../utils/logger.js';
 import { getModelConfig, getPrompt, validateResponse } from '../config/models.js';
 
@@ -471,7 +472,6 @@ export class TidbitSynthesizer {
     };
     
     // Use crypto hash for better collision resistance
-    const crypto = require('crypto');
     const dataHash = crypto.createHash('sha256')
       .update(JSON.stringify(stableData))
       .digest('hex')
