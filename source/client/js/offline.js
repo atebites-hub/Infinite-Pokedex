@@ -29,13 +29,6 @@ export class OfflineManager {
   setupEventListeners() {
     window.addEventListener('online', () => this.handleOnline());
     window.addEventListener('offline', () => this.handleOffline());
-    
-    // Also monitor fetch failures as offline indicator
-    window.addEventListener('fetch', (event) => {
-      if (event.request.method === 'GET') {
-        event.respondWith(this.handleFetch(event.request));
-      }
-    });
   }
 
   /**
@@ -396,7 +389,11 @@ export class ErrorHandler {
       const store = tx.objectStore('metadata');
 
       // Get existing errors
-      const errorsData = await store.get('error_log');
+      const errorsData = await new Promise((resolve, reject) => {
+        const request = store.get('error_log');
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
       const errors = errorsData?.value || [];
 
       // Add new error
@@ -408,13 +405,15 @@ export class ErrorHandler {
       }
 
       // Save back
-      await store.put({
-        key: 'error_log',
-        value: errors,
-        updatedAt: Date.now(),
+      await new Promise((resolve, reject) => {
+        const request = store.put({
+          key: 'error_log',
+          value: errors,
+          updatedAt: Date.now(),
+        });
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
       });
-
-      await tx.complete;
     } catch (error) {
       logger.error('Error Handler: Failed to store error', error);
     }
@@ -456,8 +455,11 @@ export class ErrorHandler {
       const tx = db.transaction('metadata', 'readonly');
       const store = tx.objectStore('metadata');
 
-      const errorsData = await store.get('error_log');
-      await tx.complete;
+      const errorsData = await new Promise((resolve, reject) => {
+        const request = store.get('error_log');
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
 
       return errorsData?.value || [];
     } catch (error) {
@@ -479,8 +481,11 @@ export class ErrorHandler {
       const tx = db.transaction('metadata', 'readwrite');
       const store = tx.objectStore('metadata');
 
-      await store.delete('error_log');
-      await tx.complete;
+      await new Promise((resolve, reject) => {
+        const request = store.delete('error_log');
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+      });
 
       logger.info('Error Handler: Stored errors cleared');
     } catch (error) {

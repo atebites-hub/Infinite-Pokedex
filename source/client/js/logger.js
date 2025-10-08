@@ -18,26 +18,28 @@ function formatLog(level, message, meta = {}) {
   return `[${timestamp}] ${level}: ${message} ${JSON.stringify(meta)}`;
 }
 
-export function debug(message, meta = {}) {
-  if (currentLevel <= LOG_LEVELS.DEBUG) {
-    console.debug(formatLog('DEBUG', message, meta));
-  }
-}
+export const logger = {
+  debug(message, meta = {}) {
+    if (currentLevel <= LOG_LEVELS.DEBUG) {
+      console.debug(formatLog('DEBUG', message, meta));
+    }
+  },
 
-export function info(message, meta = {}) {
-  if (currentLevel <= LOG_LEVELS.INFO) {
-    console.log(formatLog('INFO', message, meta));
-  }
-}
+  info(message, meta = {}) {
+    if (currentLevel <= LOG_LEVELS.INFO) {
+      console.log(formatLog('INFO', message, meta));
+    }
+  },
 
-export function warn(message, meta = {}) {
-  if (currentLevel <= LOG_LEVELS.WARN) {
-    console.warn(formatLog('WARN', message, meta));
-  }
-}
+  warn(message, meta = {}) {
+    if (currentLevel <= LOG_LEVELS.WARN) {
+      console.warn(formatLog('WARN', message, meta));
+    }
+  },
 
-export function error(message, meta = {}) {
-  if (currentLevel <= LOG_LEVELS.ERROR) {
-    console.error(formatLog('ERROR', message, meta));
+  error(message, meta = {}) {
+    if (currentLevel <= LOG_LEVELS.ERROR) {
+      console.error(formatLog('ERROR', message, meta));
+    }
   }
-}
+};

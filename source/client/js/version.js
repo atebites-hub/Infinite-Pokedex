@@ -31,15 +31,18 @@ export class VersionManager {
       const tx = db.transaction('metadata', 'readonly');
       const store = tx.objectStore('metadata');
       
-      const versionData = await store.get('current_version');
+      const versionData = await new Promise((resolve, reject) => {
+        const request = store.get('current_version');
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+
       if (versionData) {
         this.currentVersion = versionData.value;
         logger.info('Version Manager: Loaded version', this.currentVersion);
       } else {
         logger.info('Version Manager: No version found, starting fresh');
       }
-
-      await tx.complete;
     } catch (error) {
       logger.error('Version Manager: Failed to initialize', error);
       throw error;
@@ -176,13 +179,15 @@ export class VersionManager {
       const tx = db.transaction('metadata', 'readwrite');
       const store = tx.objectStore('metadata');
 
-      await store.put({
-        key: 'current_version',
-        value: newVersion,
-        updatedAt: Date.now(),
+      await new Promise((resolve, reject) => {
+        const request = store.put({
+          key: 'current_version',
+          value: newVersion,
+          updatedAt: Date.now(),
+        });
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
       });
-
-      await tx.complete;
 
       this.currentVersion = newVersion;
       logger.info('Version Manager: Updated to version', newVersion);
@@ -312,8 +317,11 @@ export class VersionManager {
       const tx = db.transaction('metadata', 'readwrite');
       const store = tx.objectStore('metadata');
 
-      await store.delete('current_version');
-      await tx.complete;
+      await new Promise((resolve, reject) => {
+        const request = store.delete('current_version');
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+      });
 
       this.currentVersion = null;
       this.manifestCache = null;
@@ -339,8 +347,11 @@ export class VersionManager {
       const tx = db.transaction('metadata', 'readonly');
       const store = tx.objectStore('metadata');
 
-      const history = await store.get('version_history');
-      await tx.complete;
+      const history = await new Promise((resolve, reject) => {
+        const request = store.get('version_history');
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
 
       return history ? history.value : [];
     } catch (error) {
@@ -372,13 +383,15 @@ export class VersionManager {
       const tx = db.transaction('metadata', 'readwrite');
       const store = tx.objectStore('metadata');
 
-      await store.put({
-        key: 'version_history',
-        value: history,
-        updatedAt: Date.now(),
+      await new Promise((resolve, reject) => {
+        const request = store.put({
+          key: 'version_history',
+          value: history,
+          updatedAt: Date.now(),
+        });
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
       });
-
-      await tx.complete;
 
       logger.info('Version Manager: Added to history', version);
     } catch (error) {

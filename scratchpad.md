@@ -140,12 +140,19 @@ None - Ready to begin Sprint 4
 - **Integrity Checks**: SHA-256 verification catches corrupted downloads
 - **Offline UX**: Clear messaging and auto-retry improves user experience
 
+### Bug Fixes
+- **IndexedDB Transaction Await Bug**: Fixed incorrect usage of `await tx.complete` and `await tx.done` in version.js, sync.js, and offline.js. Standard IndexedDB transactions don't have awaitable `complete` or `done` properties - they use `oncomplete`/`onerror` events. The code was attempting to await non-promise values, which would cause runtime errors. Wrapped all IndexedDB operations (`store.get()`, `store.put()`, `store.delete()`) in proper Promises using `onsuccess` and `onerror` callbacks. This affected 5 methods in version.js, 6 methods in sync.js, and 3 methods in offline.js. All tests pass after the fix. (Fixed: October 8, 2025)
+- **Logger Import Issue**: Fixed logger.js to export a logger object instead of individual functions. Modules were importing `{ logger }` expecting an object with methods like `logger.info()`, but the module was exporting individual functions. Changed to export a single logger object with debug/info/warn/error methods. This affected version.js, sync-ui.js, offline.js, and sync.js. (Fixed: October 2025)
+- **Offline Manager Fetch Event**: Removed ineffective `fetch` event listener from OfflineManager.setupEventListeners(). The code was trying to intercept fetch requests on the `window` object (lines 33-39), but `fetch` events are only dispatched in Service Worker contexts, not in the main thread. This listener would never fire, making it dead code. The OfflineManager already properly detects connectivity through `online` and `offline` events, which are the correct approach for the main thread. (Fixed: October 2025)
+
 ### Best Practices
 - **Documentation First**: Write docs before/during implementation
 - **Test Coverage**: 80%+ coverage catches most issues
 - **Error Handling**: Comprehensive error handling prevents silent failures
 - **User Feedback**: Progress indicators essential for long operations
 - **Graceful Degradation**: Always provide fallbacks
+- **Export Consistency**: When exporting utilities, prefer object exports over individual functions for better namespace management
+- **IndexedDB Promises**: Always wrap IndexedDB operations in proper Promises. Native IndexedDB uses callbacks (`onsuccess`/`onerror`), not awaitable properties. Don't use `await tx.complete` or `await store.get()` - wrap them in `new Promise((resolve, reject) => { ... })`
 
 ## Development Commands
 

@@ -9,7 +9,7 @@
  */
 
 import { openDB } from './storage.js';
-import { error as logError, info as logInfo } from './logger.js';
+import { logger } from './logger.js';
 import { versionManager } from './version.js';
 
 const CDN_BASE_URL = import.meta.env.VITE_CDN_URL || 'https://cdn.infinite-pokedex.com';
@@ -34,7 +34,7 @@ export class CDNSync {
     this.db = await openDB();
     await versionManager.initialize();
     this.currentVersion = versionManager.getCurrentVersion();
-    logInfo('CDN Sync initialized', { currentVersion: this.currentVersion });
+    logger.info('CDN Sync initialized', { currentVersion: this.currentVersion });
   }
 
   /**
@@ -47,10 +47,14 @@ export class CDNSync {
     try {
       const tx = this.db.transaction('metadata', 'readonly');
       const store = tx.objectStore('metadata');
-      const versionData = await store.get('dataset-version');
+      const versionData = await new Promise((resolve, reject) => {
+        const request = store.get('dataset-version');
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
       return versionData?.value || null;
     } catch (err) {
-      logError('Failed to get current version', { error: err.message });
+      logger.error('Failed to get current version', { error: err.message });
       return null;
     }
   }
@@ -78,7 +82,7 @@ export class CDNSync {
           throw new Error('Invalid manifest structure');
         }
         
-        logInfo('Manifest fetched', { version: manifest.version, count: manifest.species?.length || manifest.files?.length });
+        logger.info('Manifest fetched', { version: manifest.version, count: manifest.species?.length || manifest.files?.length });
         return manifest;
       } catch (err) {
         if (attempt === MAX_RETRIES - 1) {
@@ -99,7 +103,7 @@ export class CDNSync {
   async needsSync(manifest) {
     const hasUpdate = await versionManager.checkForUpdates(`${CDN_BASE_URL}/species/index.json`);
     
-    logInfo('Version check', { 
+    logger.info('Version check', { 
       current: this.currentVersion, 
       latest: manifest.version, 
       needsSync: hasUpdate 
@@ -128,7 +132,7 @@ export class CDNSync {
       });
     }
     
-    logInfo('Chunks calculated', { totalChunks: chunks.length, totalSpecies: species.length });
+    logger.info('Chunks calculated', { totalChunks: chunks.length, totalSpecies: species.length });
     return chunks;
   }
 
@@ -141,7 +145,7 @@ export class CDNSync {
    * @throws {Error} If download fails after retries
    */
   async downloadChunk(chunk) {
-    logInfo('Downloading chunk', { chunkId: chunk.id, count: chunk.species.length });
+    logger.info('Downloading chunk', { chunkId: chunk.id, count: chunk.species.length });
     
     for (const speciesRef of chunk.species) {
       await this.downloadSpecies(speciesRef);
@@ -181,7 +185,7 @@ export class CDNSync {
         return;
       } catch (err) {
         if (attempt === MAX_RETRIES - 1) {
-          logError('Failed to download species', { 
+          logger.error('Failed to download species', { 
             id: speciesRef.id, 
             error: err.message 
           });
@@ -202,8 +206,11 @@ export class CDNSync {
   async storeSpecies(speciesData) {
     const tx = this.db.transaction('species', 'readwrite');
     const store = tx.objectStore('species');
-    await store.put(speciesData);
-    await tx.done;
+    await new Promise((resolve, reject) => {
+      const request = store.put(speciesData);
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
   }
 
   /**
@@ -216,15 +223,18 @@ export class CDNSync {
   async saveCheckpoint(chunkId) {
     const tx = this.db.transaction('metadata', 'readwrite');
     const store = tx.objectStore('metadata');
-    await store.put({
-      key: 'sync-checkpoint',
-      value: {
-        chunkId,
-        timestamp: Date.now(),
-      },
+    await new Promise((resolve, reject) => {
+      const request = store.put({
+        key: 'sync-checkpoint',
+        value: {
+          chunkId,
+          timestamp: Date.now(),
+        },
+      });
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
     });
-    await tx.done;
-    logInfo('Checkpoint saved', { chunkId });
+    logger.info('Checkpoint saved', { chunkId });
   }
 
   /**
@@ -237,10 +247,14 @@ export class CDNSync {
     try {
       const tx = this.db.transaction('metadata', 'readonly');
       const store = tx.objectStore('metadata');
-      const checkpoint = await store.get('sync-checkpoint');
+      const checkpoint = await new Promise((resolve, reject) => {
+        const request = store.get('sync-checkpoint');
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
       return checkpoint?.value || null;
     } catch (err) {
-      logError('Failed to get checkpoint', { error: err.message });
+      logger.error('Failed to get checkpoint', { error: err.message });
       return null;
     }
   }
@@ -254,9 +268,12 @@ export class CDNSync {
   async clearCheckpoint() {
     const tx = this.db.transaction('metadata', 'readwrite');
     const store = tx.objectStore('metadata');
-    await store.delete('sync-checkpoint');
-    await tx.done;
-    logInfo('Checkpoint cleared');
+    await new Promise((resolve, reject) => {
+      const request = store.delete('sync-checkpoint');
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
+    logger.info('Checkpoint cleared');
   }
 
   /**
@@ -269,13 +286,16 @@ export class CDNSync {
   async saveVersion(version) {
     const tx = this.db.transaction('metadata', 'readwrite');
     const store = tx.objectStore('metadata');
-    await store.put({
-      key: 'dataset-version',
-      value: version,
+    await new Promise((resolve, reject) => {
+      const request = store.put({
+        key: 'dataset-version',
+        value: version,
+      });
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
     });
-    await tx.done;
     this.currentVersion = version;
-    logInfo('Version saved', { version });
+    logger.info('Version saved', { version });
   }
 
   /**
@@ -301,7 +321,7 @@ export class CDNSync {
       try {
         cb(current, total, percentage);
       } catch (err) {
-        logError('Progress callback error', { error: err.message });
+        logger.error('Progress callback error', { error: err.message });
       }
     });
   }
@@ -315,7 +335,7 @@ export class CDNSync {
    */
   async syncDataset() {
     if (this.syncInProgress) {
-      logInfo('Sync already in progress');
+      logger.info('Sync already in progress');
       return;
     }
 
@@ -327,7 +347,7 @@ export class CDNSync {
 
       // Check if sync needed
       if (!(await this.needsSync(manifest))) {
-        logInfo('Already up to date');
+        logger.info('Already up to date');
         this.syncInProgress = false;
         return;
       }
@@ -340,7 +360,7 @@ export class CDNSync {
       const startChunk = checkpoint ? checkpoint.chunkId + 1 : 0;
 
       if (checkpoint) {
-        logInfo('Resuming sync', { fromChunk: startChunk });
+        logger.info('Resuming sync', { fromChunk: startChunk });
       }
 
       // Download chunks
@@ -358,9 +378,9 @@ export class CDNSync {
       });
       await this.clearCheckpoint();
 
-      logInfo('Sync completed', { version: manifest.version });
+      logger.info('Sync completed', { version: manifest.version });
     } catch (err) {
-      logError('Sync failed', { error: err.message });
+      logger.error('Sync failed', { error: err.message });
       throw err;
     } finally {
       this.syncInProgress = false;
