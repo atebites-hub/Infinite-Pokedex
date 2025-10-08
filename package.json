@@ -12,7 +12,7 @@
     "test:coverage": "NODE_OPTIONS='--experimental-vm-modules' jest --coverage",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "lint:security": "eslint . --ext .js --no-eslintrc --config .eslintrc.js",
+    "lint:security": "eslint . --ext .js --no-eslintrc --config .eslintrc.cjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test:all": "./scripts/test-suite.sh",

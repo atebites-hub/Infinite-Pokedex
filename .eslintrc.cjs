@@ -1,10 +1,10 @@
-export default {
+module.exports = {
   env: {
     browser: true,
     es2021: true,
     node: true,
   },
-  extends: ['eslint:recommended', 'plugin:security/recommended'],
+  extends: ['eslint:recommended'],
   plugins: ['security'],
   parserOptions: {
     ecmaVersion: 'latest',
