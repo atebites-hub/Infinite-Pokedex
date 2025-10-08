@@ -4,7 +4,7 @@
 export class StorageManager {
   constructor() {
     this.dbName = 'InfinitePokedexDB';
-    this.dbVersion = 1;
+    this.dbVersion = 2; // Incremented for metadata store
     this.db = null;
     this.isInitialized = false;
 
@@ -82,6 +82,13 @@ export class StorageManager {
     // Cache metadata store
     if (!db.objectStoreNames.contains('cacheMetadata')) {
       const cacheStore = db.createObjectStore('cacheMetadata', {
+        keyPath: 'key',
+      });
+    }
+
+    // Metadata store for sync checkpoints and versions
+    if (!db.objectStoreNames.contains('metadata')) {
+      const metadataStore = db.createObjectStore('metadata', {
         keyPath: 'key',
       });
     }
@@ -550,6 +557,7 @@ export class StorageManager {
       'generatedContent',
       'settings',
       'cacheMetadata',
+      'metadata',
     ];
 
     return Promise.all(
@@ -594,4 +602,15 @@ export class StorageManager {
       return { available: false, error: error.message };
     }
   }
+}
+
+/**
+ * Export a helper function to open the database
+ * Used by sync.js and other modules
+ * @returns {Promise<IDBDatabase>} Database instance
+ */
+export async function openDB() {
+  const manager = new StorageManager();
+  await manager.waitForReady();
+  return manager.db;
 }
