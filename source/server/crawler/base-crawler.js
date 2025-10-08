@@ -508,10 +508,11 @@ class RobotsParser {
       const trimmed = line.trim();
       if (!trimmed || trimmed.startsWith('#')) continue;
 
-      // Skip lines that don't contain a colon
-      if (!trimmed.includes(':')) continue;
+      const colonIndex = trimmed.indexOf(':');
+      if (colonIndex === -1) continue;
 
-      const [directive, value] = trimmed.split(':').map((s) => s.trim());
+      const directive = trimmed.substring(0, colonIndex).trim().toLowerCase();
+      const value = trimmed.substring(colonIndex + 1).trim();
 
       if (directive.toLowerCase() === 'user-agent') {
         currentUserAgent = value.toLowerCase();

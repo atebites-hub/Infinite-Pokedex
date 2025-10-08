@@ -579,7 +579,7 @@ export class DataProcessor {
   cleanText(text) {
     return text
       .replace(/\s+/g, ' ')
-      .replace(/[^\w\s\-.,!?]/g, '')
+      .replace(/[^\w\s\-.,!?:;()'"]/g, '')
       .trim();
   }
 

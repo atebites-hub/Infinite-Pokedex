@@ -220,7 +220,11 @@ The project combines server-side web crawling of Bulbapedia/Serebii for canonica
 - **Robots.txt Parser Bug Fix**: Fixed RobotsParser.parseRobotsTxt() method to skip lines without colons, preventing undefined value variables that could cause unexpected behavior when processing robots.txt rules
 - **Cache Key Bug Fix**: Fixed TidbitSynthesizer.getCacheKey() method to include forum data in cache key and use full SHA-256 hash instead of truncated hash, preventing stale tidbits when forum discussions change and reducing hash collision risk
 - **Cache Key Generation Bug Fix**: Fixed TidbitSynthesizer.enrichSpecies() method to handle getForumData() failures gracefully without breaking cache key generation, ensuring stable cache keys even when forum data is unavailable or inconsistent
+- **Cache Key Normalization Bug Fix**: Fixed TidbitSynthesizer.getCacheKey() method to normalize forum data by using a consistent placeholder ('no-forum-data') when forum data is empty or undefined, preventing cache misses due to inconsistent empty string values
 - **Test Refactoring**: Moved test-cache-key.js to tests/unit/ directory and created comprehensive test suite with cache-key-fix.test.js and cache-key-fix-runner.js for proper test structure and Jest integration
+- **Text Cleaning Bug Fix**: Fixed regex pattern in DataProcessor.cleanText() and sanitizeText() functions to preserve valid punctuation like apostrophes, parentheses, and colons while still removing invalid special characters, preventing corruption of Pokémon names and descriptions
+- **SerebiiCrawler Data Extraction Bug Fix**: Fixed SerebiiCrawler class to replace hardcoded placeholder values with actual HTML parsing using Cheerio, enabling proper extraction of Pokémon data from Serebii pages including name, types, stats, abilities, moves, description, locations, and evolution information
+- **Robots.txt Multiple Colons Bug Fix**: Fixed RobotsParser.parseRobotsTxt() method in BaseCrawler to properly handle lines containing multiple colons by using indexOf(':') and substring() instead of split(':'), ensuring complete value preservation for robots.txt rules like "Disallow: /path:with:colons"
 
 ### Process Lessons
 

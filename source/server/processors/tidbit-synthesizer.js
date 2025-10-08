@@ -513,10 +513,15 @@ export class TidbitSynthesizer {
       trivia: speciesData.trivia,
     };
 
+    // Normalize forum data to ensure consistent cache keys
+    // Use a consistent placeholder when forum data is empty/undefined to prevent cache misses
+    const normalizedForumData =
+      forumData && forumData.trim() ? forumData.trim() : 'no-forum-data';
+
     // Include forum data in cache key to ensure cache invalidation when forum discussions change
     const cacheData = {
       speciesData: stableData,
-      forumData: forumData,
+      forumData: normalizedForumData,
     };
 
     // Use full SHA-256 hash to minimize collision risk

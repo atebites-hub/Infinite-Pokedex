@@ -183,7 +183,7 @@ export function sanitizeText(text) {
 
   return text
     .replace(/[<>]/g, '') // Remove potential HTML tags
-    .replace(/[^\w\s\-.,!?]/g, '') // Remove special characters
+    .replace(/[^\w\s\-.,!?:;()'"]/g, '') // Remove special characters but preserve common punctuation
     .replace(/\s+/g, ' ') // Normalize whitespace
     .trim();
 }
