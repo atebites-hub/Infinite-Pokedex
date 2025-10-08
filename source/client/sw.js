@@ -19,6 +19,7 @@ const CACHE_LIMITS = {
 const STATIC_ASSETS = [
   '/',
   '/index.html',
+  '/offline.html',
   '/manifest.json',
   '/css/main.css',
   '/css/animations.css',
@@ -29,6 +30,8 @@ const STATIC_ASSETS = [
   '/js/storage.js',
   '/js/sync.js',
   '/js/logger.js',
+  '/js/offline.js',
+  '/js/version.js',
   '/js/animations.js',
   '/assets/icons/icon-192.png',
   '/assets/icons/icon-512.png',
@@ -143,7 +146,7 @@ async function cacheFirst(request, cacheName) {
 
     // Return offline fallback for navigation
     if (request.mode === 'navigate') {
-      return caches.match('/index.html');
+      return caches.match('/offline.html') || caches.match('/index.html');
     }
 
     throw error;
@@ -183,7 +186,7 @@ async function networkFirst(request, cacheName) {
 
     // Return offline fallback for navigation
     if (request.mode === 'navigate') {
-      return caches.match('/index.html');
+      return caches.match('/offline.html') || caches.match('/index.html');
     }
 
     throw error;
