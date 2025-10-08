@@ -15,7 +15,7 @@ import { promises as fs } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { logger } from '../utils/logger.js';
-import { getSourceConfig } from '../config/crawler.js';
+import { defaultConfig } from '../config/crawler.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -25,7 +25,7 @@ const __dirname = dirname(__filename);
  */
 export class BaseCrawler {
   constructor(config) {
-    this.config = { ...getSourceConfig('default'), ...config };
+    this.config = { ...defaultConfig, ...config };
     this.rateLimiter = new RateLimiter(this.config.rateLimit);
     this.circuitBreaker = new CircuitBreaker(this.config.circuitBreaker);
     this.cache = new CacheManager(this.config.cache);

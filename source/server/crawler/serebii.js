@@ -59,7 +59,7 @@ export class SerebiiCrawler extends BaseCrawler {
    * @param {Object} options - Crawl options
    * @returns {Promise<Array>} Species data array
    */
-  async crawlSpecies(speciesIds, options = {}) {
+  async crawlMultipleSpecies(speciesIds, options = {}) {
     const results = [];
     const errors = [];
 

@@ -209,6 +209,7 @@ The project combines server-side web crawling of Bulbapedia/Serebii for canonica
 - **PWA Architecture**: Offline-first design with IndexedDB and Service Worker caching
 - **Gen 9 Aesthetics**: CSS animations and transforms can recreate game-like feel without frameworks
 - **Respectful Crawling**: Rate limiting and robots.txt compliance essential for sustainable scraping
+- **Configuration Architecture**: BaseCrawler should use defaultConfig directly, not try to get 'default' source config
 
 ### Process Lessons
 
