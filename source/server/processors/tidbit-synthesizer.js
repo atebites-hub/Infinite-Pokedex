@@ -82,17 +82,17 @@ export class TidbitSynthesizer {
    */
   async enrichSpecies(speciesId, speciesData) {
     try {
-      // Check cache first
-      const cacheKey = this.getCacheKey(speciesId, speciesData);
+      // Prepare data for LLM first
+      const speciesDataText = this.formatSpeciesData(speciesData);
+      const forumDataText = await this.getForumData(speciesId);
+
+      // Generate cache key after retrieving all inputs
+      const cacheKey = this.getCacheKey(speciesId, speciesData, forumDataText);
       if (this.cache.has(cacheKey)) {
         logger.debug(`Cache hit for species ${speciesId}`);
         const cached = this.cache.get(cacheKey);
         return { ...speciesData, tidbits: cached };
       }
-
-      // Prepare data for LLM
-      const speciesDataText = this.formatSpeciesData(speciesData);
-      const forumDataText = await this.getForumData(speciesId);
 
       // Generate tidbits
       const tidbits = await this.generateTidbits(speciesDataText, forumDataText);
@@ -457,9 +457,10 @@ export class TidbitSynthesizer {
    * Generate cache key for species
    * @param {string} speciesId - Species ID
    * @param {Object} speciesData - Species data
+   * @param {string} forumData - Forum discussion data
    * @returns {string} Cache key
    */
-  getCacheKey(speciesId, speciesData) {
+  getCacheKey(speciesId, speciesData, forumData) {
     // Create a stable cache key using only essential, unchanging data
     // Exclude tidbits array and other dynamic fields to prevent cache invalidation
     const stableData = {
@@ -471,11 +472,16 @@ export class TidbitSynthesizer {
       trivia: speciesData.trivia
     };
     
-    // Use crypto hash for better collision resistance
+    // Include forum data in cache key to ensure cache invalidation when forum discussions change
+    const cacheData = {
+      speciesData: stableData,
+      forumData: forumData
+    };
+    
+    // Use full SHA-256 hash to minimize collision risk
     const dataHash = crypto.createHash('sha256')
-      .update(JSON.stringify(stableData))
-      .digest('hex')
-      .slice(0, 32); // Use 32 chars for better uniqueness while keeping key manageable
+      .update(JSON.stringify(cacheData))
+      .digest('hex');
     
     return `${speciesId}-${dataHash}`;
   }

@@ -17,6 +17,7 @@ import { logger } from './utils/logger.js';
 import { BaseCrawler } from './crawler/base-crawler.js';
 import { BulbapediaCrawler } from './crawler/bulbapedia.js';
 import { SerebiiCrawler } from './crawler/serebii.js';
+import { SmogonCrawler } from './crawler/smogon.js';
 import { DataProcessor } from './processors/parser.js';
 import { TidbitSynthesizer } from './processors/tidbit-synthesizer.js';
 import { DatasetBuilder } from './builders/dataset-builder.js';
@@ -66,6 +67,7 @@ class InfinitePokedexServer {
       // Initialize crawlers
       this.crawlers.set('bulbapedia', new BulbapediaCrawler(this.config));
       this.crawlers.set('serebii', new SerebiiCrawler(this.config));
+      this.crawlers.set('smogon', new SmogonCrawler(this.config));
 
       // Initialize processors
       this.processor = new DataProcessor(this.config);
@@ -134,7 +136,18 @@ class InfinitePokedexServer {
     for (const [source, crawler] of this.crawlers) {
       try {
         logger.info(`Crawling ${source}...`);
-        const data = await crawler.crawl(species, skipCache);
+        
+        let data;
+        if (source === 'smogon') {
+          // Smogon needs different handling - crawl strategy pages and forums
+          const strategyData = await this.crawlSmogonStrategy(species, skipCache);
+          const forumData = await this.crawlSmogonForums(species, skipCache);
+          data = { strategy: strategyData, forums: forumData };
+        } else {
+          // Standard crawling for Bulbapedia and Serebii
+          data = await crawler.crawl(species, skipCache);
+        }
+        
         results[source] = data;
         logger.info(`Crawled ${Object.keys(data).length} entries from ${source}`);
       } catch (error) {
@@ -144,6 +157,83 @@ class InfinitePokedexServer {
     }
 
     return results;
+  }
+
+  /**
+   * Crawl Smogon strategy data
+   * @param {Array} species - Species to crawl
+   * @param {boolean} skipCache - Skip cached data
+   * @returns {Object} Strategy data
+   */
+  async crawlSmogonStrategy(species, skipCache = false) {
+    const smogonCrawler = this.crawlers.get('smogon');
+    const results = [];
+    const errors = [];
+
+    for (const speciesId of species) {
+      try {
+        // Convert species ID to name for Smogon
+        const speciesName = await this.getSpeciesName(speciesId);
+        const result = await smogonCrawler.crawlStrategyPokemon(speciesName, { skipCache });
+        results.push(result);
+      } catch (error) {
+        errors.push({ speciesId, error: error.message });
+        logger.warn(`Failed to crawl Smogon strategy for ${speciesId}:`, error.message);
+      }
+    }
+
+    return { results, errors };
+  }
+
+  /**
+   * Crawl Smogon forums for tidbits
+   * @param {Array} species - Species to crawl
+   * @param {boolean} skipCache - Skip cached data
+   * @returns {Object} Forum data
+   */
+  async crawlSmogonForums(species, skipCache = false) {
+    const smogonCrawler = this.crawlers.get('smogon');
+    const results = [];
+    const errors = [];
+
+    for (const speciesId of species) {
+      try {
+        const speciesName = await this.getSpeciesName(speciesId);
+        const result = await smogonCrawler.searchForumDiscussions(speciesName, { skipCache });
+        results.push(result);
+      } catch (error) {
+        errors.push({ speciesId, error: error.message });
+        logger.warn(`Failed to crawl Smogon forums for ${speciesId}:`, error.message);
+      }
+    }
+
+    return { results, errors };
+  }
+
+  /**
+   * Get species name from ID
+   * @param {string|number} speciesId - Species ID
+   * @returns {string} Species name
+   */
+  async getSpeciesName(speciesId) {
+    // This would typically query a species database or API
+    // For now, we'll use a simple mapping
+    if (typeof speciesId === 'string') {
+      return speciesId;
+    }
+    
+    // Convert ID to name (this would be more sophisticated in practice)
+    const speciesNames = {
+      1: 'bulbasaur',
+      2: 'ivysaur',
+      3: 'venusaur',
+      4: 'charmander',
+      5: 'charmeleon',
+      6: 'charizard',
+      // ... more mappings would be needed
+    };
+    
+    return speciesNames[speciesId] || `pokemon-${speciesId}`;
   }
 
   /**
@@ -167,10 +257,10 @@ class InfinitePokedexServer {
 }
 
 // CLI interface
-const currentModulePath = fileURLToPath(import.meta.url);
-const scriptPath = process.argv[1] ? resolve(process.argv[1]) : null;
-// Normalize both paths to ensure reliable comparison
-const isMainModule = scriptPath ? resolve(currentModulePath) === resolve(scriptPath) : false;
+// Use import.meta.url to detect if this module is being run directly
+// This is more reliable than comparing process.argv paths
+const isMainModule = import.meta.url === `file://${process.argv[1]}` || 
+                      (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1]));
 
 if (isMainModule) {
   const server = new InfinitePokedexServer();

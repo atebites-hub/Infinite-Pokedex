@@ -103,6 +103,31 @@ export const sourceConfigs = {
       stats: '.tab table tr',
       moves: '.tab table tr td'
     }
+  },
+
+  smogon: {
+    baseUrl: 'https://www.smogon.com',
+    robotsUrl: 'https://www.smogon.com/robots.txt',
+    rateLimit: {
+      requestsPerMinute: 60, // Conservative for Smogon
+      requestsPerSecond: 1,
+      burstLimit: 5
+    },
+    paths: {
+      strategy: '/dex/sv/pokemon/{name}/',
+      forums: '/forums/',
+      search: '/dex/sv/pokemon/'
+    },
+    selectors: {
+      title: 'h1',
+      content: '.dex-pokemon-page',
+      strategy: '.dex-pokemon-page .dex-pokemon-gen9dex',
+      moves: '.dex-pokemon-page .dex-pokemon-moves',
+      abilities: '.dex-pokemon-page .dex-pokemon-abilities',
+      stats: '.dex-pokemon-page .dex-pokemon-stats',
+      forumPosts: '.forum-post',
+      forumContent: '.forum-post-content'
+    }
   }
 };
 

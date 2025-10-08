@@ -125,6 +125,7 @@ The project combines server-side web crawling of Bulbapedia/Serebii for canonica
 - [x] Build HTML parser and data normalizer
 - [x] Integrate OpenRouter LLM for tidbit synthesis
 - [x] Create dataset builder and CDN publisher
+- [x] Add Smogon crawler for Strategy Pokedex and forums
 
 **Agent 3 (Development Environment)**: `feature/dev-environment`
 
@@ -179,6 +180,8 @@ The project combines server-side web crawling of Bulbapedia/Serebii for canonica
 - Atomic CDN publishing with version management
 - Support for AWS S3, Cloudflare R2, and Vercel Blob
 - Comprehensive error handling and logging
+- Smogon Strategy Pokedex crawler for competitive data
+- Smogon forums crawler for community discussions and tidbits
 
 ### Key Decisions Made
 
@@ -211,9 +214,10 @@ The project combines server-side web crawling of Bulbapedia/Serebii for canonica
 - **Respectful Crawling**: Rate limiting and robots.txt compliance essential for sustainable scraping
 - **Configuration Architecture**: BaseCrawler should use defaultConfig directly, not try to get 'default' source config
 - **Rate Limiting Bug Fix**: Fixed RateLimiter.wait() method to properly handle fractional requestsPerSecond and prevent burstTokens from becoming permanently zero
-- **CLI Detection Bug Fix**: Fixed CLI detection logic in index.js to properly compare file paths using fileURLToPath() and resolve() for reliable path comparison, with safety check for undefined process.argv[1] when imported as module
+- **CLI Detection Bug Fix**: Fixed CLI detection logic in index.js to use more robust path comparison that handles undefined process.argv[1] and cross-platform path differences by using import.meta.url comparison as primary method with fallback to fileURLToPath() and resolve() comparison
 - **Robots.txt Parser Bug Fix**: Fixed RobotsParser.parseRobotsTxt() method to skip lines without colons, preventing undefined value variables that could cause unexpected behavior when processing robots.txt rules
-- **Cache Key Bug Fix**: Fixed TidbitSynthesizer.getCacheKey() method to use stable data fields only (excluding tidbits array) and SHA-256 hashing instead of truncated base64, preventing cache invalidation and hash collisions
+- **Cache Key Bug Fix**: Fixed TidbitSynthesizer.getCacheKey() method to include forum data in cache key and use full SHA-256 hash instead of truncated hash, preventing stale tidbits when forum discussions change and reducing hash collision risk
+- **Test Refactoring**: Moved test-cache-key.js to tests/unit/ directory and created comprehensive test suite with cache-key-fix.test.js and cache-key-fix-runner.js for proper test structure and Jest integration
 
 ### Process Lessons
 
