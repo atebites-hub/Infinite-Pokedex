@@ -578,8 +578,9 @@ export class DataProcessor {
    */
   cleanText(text) {
     return text
-      .replace(/\s+/g, ' ')
-      .replace(/[^\w\s\-.,!?:;()'"]/g, '')
+      .replace(/<[^>]*>/g, '') // Remove HTML tags
+      .replace(/[^\p{L}\p{N}\s\-.,!?:;()'"♀♂]/gu, '') // Preserve Unicode letters, numbers, and common punctuation
+      .replace(/\s+/g, ' ') // Normalize whitespace
       .trim();
   }
 
