@@ -168,8 +168,9 @@ class InfinitePokedexServer {
 
 // CLI interface
 const currentModulePath = fileURLToPath(import.meta.url);
-const scriptPath = resolve(process.argv[1]);
-const isMainModule = currentModulePath === scriptPath;
+const scriptPath = process.argv[1] ? resolve(process.argv[1]) : null;
+// Normalize both paths to ensure reliable comparison
+const isMainModule = scriptPath ? resolve(currentModulePath) === resolve(scriptPath) : false;
 
 if (isMainModule) {
   const server = new InfinitePokedexServer();
