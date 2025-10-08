@@ -296,7 +296,7 @@ class RateLimiter {
     
     // Refill burst tokens
     const timeSinceRefill = now - this.lastRefill;
-    const tokensToAdd = Math.floor(timeSinceRefill / 1000) * this.config.requestsPerSecond;
+    const tokensToAdd = (timeSinceRefill / 1000) * this.config.requestsPerSecond;
     this.burstTokens = Math.min(this.burstTokens + tokensToAdd, this.config.burstLimit);
     this.lastRefill = now;
 
@@ -304,7 +304,9 @@ class RateLimiter {
     if (this.burstTokens <= 0) {
       const waitTime = 1000 / this.config.requestsPerSecond;
       await new Promise(resolve => setTimeout(resolve, waitTime));
-      this.burstTokens = Math.max(0, this.burstTokens - 1);
+      // Don't decrement burstTokens when it's already zero or negative
+      // Just refill after waiting
+      this.burstTokens = Math.min(this.config.requestsPerSecond, this.config.burstLimit);
     } else {
       this.burstTokens--;
     }
@@ -494,6 +496,9 @@ class RobotsParser {
     for (const line of lines) {
       const trimmed = line.trim();
       if (!trimmed || trimmed.startsWith('#')) continue;
+
+      // Skip lines that don't contain a colon
+      if (!trimmed.includes(':')) continue;
 
       const [directive, value] = trimmed.split(':').map(s => s.trim());
       

@@ -459,8 +459,25 @@ export class TidbitSynthesizer {
    * @returns {string} Cache key
    */
   getCacheKey(speciesId, speciesData) {
-    const dataHash = JSON.stringify(speciesData);
-    return `${speciesId}-${Buffer.from(dataHash).toString('base64').slice(0, 16)}`;
+    // Create a stable cache key using only essential, unchanging data
+    // Exclude tidbits array and other dynamic fields to prevent cache invalidation
+    const stableData = {
+      name: speciesData.name,
+      types: speciesData.types,
+      stats: speciesData.stats,
+      abilities: speciesData.abilities,
+      description: speciesData.description,
+      trivia: speciesData.trivia
+    };
+    
+    // Use crypto hash for better collision resistance
+    const crypto = require('crypto');
+    const dataHash = crypto.createHash('sha256')
+      .update(JSON.stringify(stableData))
+      .digest('hex')
+      .slice(0, 32); // Use 32 chars for better uniqueness while keeping key manageable
+    
+    return `${speciesId}-${dataHash}`;
   }
 
   /**
