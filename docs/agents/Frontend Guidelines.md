@@ -3,9 +3,11 @@
 This document defines the design system, coding standards, and animation patterns for the Infinite Pokédex PWA. We use vanilla HTML/CSS/JS to keep the bundle minimal and ensure smooth Gen 9 Pokédex animations.
 
 ## Design Philosophy
+
 The UI emulates the Generation 9 Pokédex (Rotom Phone) with a modern, mobile‑first approach. Animations should feel snappy and game‑like, similar to Scarlet/Violet's Pokédex transitions. We prioritize performance over complexity, using CSS animations and transforms over heavy JavaScript libraries.
 
 ## Technology Stack
+
 - **Core**: Vanilla HTML5, CSS3, JavaScript (ES2020+)
 - **PWA**: Web App Manifest, Service Worker, IndexedDB
 - **AI**: WebLLM (Qwen3‑small), Web Stable Diffusion
@@ -13,36 +15,42 @@ The UI emulates the Generation 9 Pokédex (Rotom Phone) with a modern, mobile‑
 - **No frameworks**: Keep dependencies minimal for faster loading and better mobile performance
 
 ## Color Palette (Gen 9 Rotom Theme)
+
 ```css
 :root {
   /* Primary Rotom Colors */
-  --rotom-blue: #4A90E2;
-  --rotom-cyan: #7ED4E6;
-  --rotom-purple: #8B5CF6;
-  --rotom-pink: #EC4899;
-  
+  --rotom-blue: #4a90e2;
+  --rotom-cyan: #7ed4e6;
+  --rotom-purple: #8b5cf6;
+  --rotom-pink: #ec4899;
+
   /* Backgrounds */
-  --bg-primary: #0F172A;      /* Dark slate */
-  --bg-secondary: #1E293B;   /* Lighter slate */
-  --bg-card: #334155;         /* Card background */
-  
+  --bg-primary: #0f172a; /* Dark slate */
+  --bg-secondary: #1e293b; /* Lighter slate */
+  --bg-card: #334155; /* Card background */
+
   /* Text */
-  --text-primary: #F8FAFC;    /* White */
-  --text-secondary: #CBD5E1; /* Light gray */
-  --text-muted: #94A3B8;     /* Muted gray */
-  
+  --text-primary: #f8fafc; /* White */
+  --text-secondary: #cbd5e1; /* Light gray */
+  --text-muted: #94a3b8; /* Muted gray */
+
   /* Accents */
-  --accent-gold: #F59E0B;     /* Type badges */
-  --accent-green: #10B981;    /* Success states */
-  --accent-red: #EF4444;       /* Error states */
-  
+  --accent-gold: #f59e0b; /* Type badges */
+  --accent-green: #10b981; /* Success states */
+  --accent-red: #ef4444; /* Error states */
+
   /* Gradients */
-  --gradient-rotom: linear-gradient(135deg, var(--rotom-blue), var(--rotom-purple));
+  --gradient-rotom: linear-gradient(
+    135deg,
+    var(--rotom-blue),
+    var(--rotom-purple)
+  );
   --gradient-card: linear-gradient(145deg, var(--bg-card), var(--bg-secondary));
 }
 ```
 
 ## Typography
+
 ```css
 /* Primary Font - Game-like UI */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
@@ -74,6 +82,7 @@ The UI emulates the Generation 9 Pokédex (Rotom Phone) with a modern, mobile‑
 ```
 
 ## Layout & Spacing
+
 ```css
 /* Mobile-first responsive design */
 .pokedex-container {
@@ -87,19 +96,21 @@ The UI emulates the Generation 9 Pokédex (Rotom Phone) with a modern, mobile‑
 
 /* Spacing scale (8px base) */
 :root {
-  --space-xs: 0.25rem;  /* 4px */
-  --space-sm: 0.5rem;  /* 8px */
-  --space-md: 1rem;    /* 16px */
-  --space-lg: 1.5rem;   /* 24px */
-  --space-xl: 2rem;     /* 32px */
-  --space-2xl: 3rem;    /* 48px */
+  --space-xs: 0.25rem; /* 4px */
+  --space-sm: 0.5rem; /* 8px */
+  --space-md: 1rem; /* 16px */
+  --space-lg: 1.5rem; /* 24px */
+  --space-xl: 2rem; /* 32px */
+  --space-2xl: 3rem; /* 48px */
 }
 ```
 
 ## Gen 9 Pokédex Animations
+
 We recreate the smooth, game‑like transitions from Scarlet/Violet using CSS animations and transforms.
 
 ### Entry Transition Animation
+
 ```css
 /* Pokédex entry slide-in (like opening a Pokédex entry) */
 .pokedex-entry {
@@ -118,9 +129,15 @@ We recreate the smooth, game‑like transitions from Scarlet/Violet using CSS an
   animation: revealContent 0.6s ease-out forwards;
 }
 
-.entry-content > *:nth-child(1) { animation-delay: 0.1s; }
-.entry-content > *:nth-child(2) { animation-delay: 0.2s; }
-.entry-content > *:nth-child(3) { animation-delay: 0.3s; }
+.entry-content > *:nth-child(1) {
+  animation-delay: 0.1s;
+}
+.entry-content > *:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.entry-content > *:nth-child(3) {
+  animation-delay: 0.3s;
+}
 
 @keyframes revealContent {
   to {
@@ -131,6 +148,7 @@ We recreate the smooth, game‑like transitions from Scarlet/Violet using CSS an
 ```
 
 ### Rotom Phone UI Animations
+
 ```css
 /* Home screen card hover effects */
 .pokemon-card {
@@ -154,11 +172,12 @@ We recreate the smooth, game‑like transitions from Scarlet/Violet using CSS an
 }
 
 @keyframes rotomPulse {
-  0%, 100% { 
+  0%,
+  100% {
     transform: scale(1);
     filter: brightness(1);
   }
-  50% { 
+  50% {
     transform: scale(1.05);
     filter: brightness(1.2);
   }
@@ -166,6 +185,7 @@ We recreate the smooth, game‑like transitions from Scarlet/Violet using CSS an
 ```
 
 ### Lore Generation Animation
+
 ```css
 /* Lore panel generation (like typing effect) */
 .lore-panel {
@@ -175,21 +195,28 @@ We recreate the smooth, game‑like transitions from Scarlet/Violet using CSS an
 }
 
 .lore-panel.generating {
-  background: linear-gradient(90deg, 
-    var(--bg-card) 25%, 
-    var(--rotom-cyan) 50%, 
-    var(--bg-card) 75%);
+  background: linear-gradient(
+    90deg,
+    var(--bg-card) 25%,
+    var(--rotom-cyan) 50%,
+    var(--bg-card) 75%
+  );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
 
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
 ```
 
 ## Component Architecture
+
 ```javascript
 // Simple component pattern (no framework needed)
 class PokedexEntry {
@@ -197,20 +224,20 @@ class PokedexEntry {
     this.speciesId = speciesId;
     this.element = this.createElement();
   }
-  
+
   createElement() {
     const entry = document.createElement('div');
     entry.className = 'pokedex-entry';
     entry.innerHTML = this.getTemplate();
     return entry;
   }
-  
+
   async loadData() {
     // Load from IndexedDB
     const data = await this.getSpeciesData(this.speciesId);
     this.render(data);
   }
-  
+
   async generateLore() {
     // WebLLM generation
     this.element.classList.add('generating');
@@ -222,6 +249,7 @@ class PokedexEntry {
 ```
 
 ## Responsive Design
+
 ```css
 /* Mobile-first breakpoints */
 @media (max-width: 375px) {
@@ -248,6 +276,7 @@ class PokedexEntry {
 ```
 
 ## Performance Optimizations
+
 ```css
 /* Hardware acceleration for animations */
 .animated-element {
@@ -272,6 +301,7 @@ class PokedexEntry {
 ```
 
 ## Accessibility Standards
+
 ```css
 /* Focus states for keyboard navigation */
 .pokemon-card:focus {
@@ -282,7 +312,7 @@ class PokedexEntry {
 /* High contrast mode support */
 @media (prefers-contrast: high) {
   :root {
-    --text-primary: #FFFFFF;
+    --text-primary: #ffffff;
     --bg-primary: #000000;
   }
 }
@@ -302,6 +332,7 @@ class PokedexEntry {
 ```
 
 ## File Organization
+
 ```
 /source/client/
 ├── index.html              # Main entry point
@@ -323,6 +354,7 @@ class PokedexEntry {
 ```
 
 ## Animation Performance Tips
+
 - Use `transform` and `opacity` for smooth 60fps animations
 - Avoid animating `width`, `height`, or layout properties
 - Use `will-change` sparingly and remove after animation
@@ -330,6 +362,7 @@ class PokedexEntry {
 - Use `requestAnimationFrame` for complex animations
 
 ## Browser Support
+
 - **Primary**: Chrome Android, Safari iOS/macOS (PWA support)
 - **Features**: Service Workers, IndexedDB, CSS Grid, CSS Custom Properties
 - **Fallbacks**: Graceful degradation for older browsers

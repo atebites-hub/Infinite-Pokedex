@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Infinite Pokédex</title>
+
+    <!-- PWA Meta Tags -->
+    <meta
+      name="description"
+      content="AI-powered Pokémon lore generator with Gen 9 Pokédex experience"
+    />
+    <meta name="theme-color" content="#4A90E2" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="apple-mobile-web-app-title" content="Infinite Pokédex" />
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json" />
+
+    <!-- Icons -->
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="192x192"
+      href="assets/icons/icon-192.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="512x512"
+      href="assets/icons/icon-512.png"
+    />
+    <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png" />
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="css/main.css" />
+    <link rel="stylesheet" href="css/animations.css" />
+    <link rel="stylesheet" href="css/components.css" />
+    <link rel="stylesheet" href="css/responsive.css" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <!-- Main App Container -->
+    <div id="app" class="pokedex-container">
+      <!-- Loading Screen -->
+      <div id="loading-screen" class="loading-screen">
+        <div class="loading-rotom">
+          <div class="rotom-logo">⚡</div>
+          <h1 class="pokedex-title">Infinite Pokédex</h1>
+          <p class="loading-text">Initializing...</p>
+        </div>
+      </div>
+
+      <!-- Main App Content -->
+      <div id="main-app" class="main-app" style="display: none">
+        <!-- Header -->
+        <header class="pokedex-header">
+          <h1 class="pokedex-title">Pokédex</h1>
+          <div class="header-actions">
+            <button id="sync-btn" class="sync-button" aria-label="Sync data">
+              <span class="sync-icon">🔄</span>
+            </button>
+          </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="pokedex-nav">
+          <button class="nav-item active" data-view="species">Species</button>
+          <button class="nav-item" data-view="favorites">Favorites</button>
+          <button class="nav-item" data-view="settings">Settings</button>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="pokedex-main">
+          <!-- Species List View -->
+          <div id="species-view" class="view-content active">
+            <div class="search-container">
+              <input
+                type="text"
+                id="search-input"
+                placeholder="Search Pokémon..."
+                class="search-input"
+              />
+            </div>
+            <div id="species-list" class="species-list">
+              <!-- Species cards will be dynamically loaded here -->
+            </div>
+          </div>
+
+          <!-- Favorites View -->
+          <div id="favorites-view" class="view-content">
+            <div id="favorites-list" class="favorites-list">
+              <!-- Favorite Pokémon will be displayed here -->
+            </div>
+          </div>
+
+          <!-- Settings View -->
+          <div id="settings-view" class="view-content">
+            <div class="settings-content">
+              <h2>Settings</h2>
+              <div class="setting-item">
+                <label for="ai-quality">AI Generation Quality</label>
+                <select id="ai-quality" class="setting-select">
+                  <option value="fast">Fast (Low Quality)</option>
+                  <option value="balanced" selected>Balanced</option>
+                  <option value="high">High Quality</option>
+                </select>
+              </div>
+              <div class="setting-item">
+                <label for="offline-mode">Offline Mode</label>
+                <input
+                  type="checkbox"
+                  id="offline-mode"
+                  class="setting-checkbox"
+                />
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+
+      <!-- Pokémon Entry Modal -->
+      <div id="pokemon-modal" class="pokemon-modal" style="display: none">
+        <div class="modal-content">
+          <button class="modal-close" aria-label="Close">×</button>
+          <div id="pokemon-entry" class="pokemon-entry">
+            <!-- Pokémon entry content will be loaded here -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- JavaScript Modules -->
+    <script type="module" src="js/main.js"></script>
+  </body>
+</html>

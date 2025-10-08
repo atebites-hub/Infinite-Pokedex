@@ -13,6 +13,7 @@ Infinite Pokédex is a Progressive Web App (PWA) that generates immersive, ever-
 ## Project Overview
 
 Infinite Pokédex combines:
+
 - **Server-side crawling** of Bulbapedia, Serebii, and Pokémon forums for canonical data and "iceberg" tidbits
 - **On-device AI generation** using WebLLM (Qwen3-small) for lore and Web Stable Diffusion for artwork
 - **Offline-first PWA** with IndexedDB caching and Service Worker background sync
@@ -47,11 +48,13 @@ Follow the layout in `/docs/agents/File Structure Doc.md` for modularity:
 ## Development Workflow
 
 ### Prerequisites
+
 - Node.js v18+ with npm
 - Modern mobile browser (Chrome Android, Safari iOS)
 - Docker (for crawler development)
 
 ### Development Commands
+
 ```bash
 # Setup project
 ./scripts/setup.sh
@@ -70,6 +73,7 @@ Follow the layout in `/docs/agents/File Structure Doc.md` for modularity:
 ```
 
 ### Testing
+
 - **Unit Tests**: Jest for client/server components (80%+ coverage)
 - **Security Tests**: XSS protection, privacy compliance, vulnerability scanning
 - **Integration Tests**: Playwright for PWA functionality and AI generation
@@ -78,18 +82,21 @@ Follow the layout in `/docs/agents/File Structure Doc.md` for modularity:
 ## Technology Stack
 
 ### Frontend
+
 - **Core**: Vanilla HTML5, CSS3, JavaScript ES2020+
 - **PWA**: Web App Manifest, Service Worker, IndexedDB
 - **AI**: WebLLM (Qwen3-small), Web Stable Diffusion
 - **Build**: Vite for development and production builds
 
 ### Backend
+
 - **Runtime**: Node.js v18+ with Express.js
 - **Crawling**: Puppeteer, Cheerio for web scraping
 - **AI**: OpenRouter API for tidbit synthesis
 - **Storage**: Local disk cache, CDN for dataset publishing
 
 ### Development
+
 - **Testing**: Jest, Playwright, ESLint, Prettier
 - **Deployment**: Docker, GitHub Actions, CDN publishing
 - **Documentation**: JSDoc, Mermaid diagrams, Markdown
@@ -97,18 +104,21 @@ Follow the layout in `/docs/agents/File Structure Doc.md` for modularity:
 ## Features
 
 ### Core Functionality
+
 - **Dynamic Lore Generation**: Each Pokémon entry generates fresh 5-panel "iceberg" lore
 - **Image Generation**: WebSD creates contextual artwork for each lore panel
 - **Offline Support**: Full functionality after initial sync, works without internet
 - **Gen 9 Aesthetics**: Rotom Phone UI with smooth animations and mobile-first design
 
 ### AI Integration
+
 - **WebLLM**: On-device lore generation using Qwen3-small model
 - **WebSD**: Image-to-image generation using base Pokémon illustrations
 - **dSpy Framework**: Optimized prompting for high-quality content generation
 - **Fallback Handling**: Graceful degradation for low-end devices
 
 ### Data Management
+
 - **Respectful Crawling**: Compliant web scraping with rate limiting
 - **Versioned Datasets**: Atomic updates with rollback capability
 - **Client Caching**: IndexedDB with adaptive quota management

@@ -3,6 +3,7 @@
 This document defines the complete file organization for Infinite Pokédex, ensuring modularity, maintainability, and clear separation between client-side PWA, server-side crawler, and documentation.
 
 ## Standard Repo Layout (Mandatory)
+
 All projects must follow this root structure to ensure cleanliness and agent cohesion. Deviations require explicit user approval.
 
 ```
@@ -31,6 +32,7 @@ All projects must follow this root structure to ensure cleanliness and agent coh
 **Known Issues**: Cross-language dependencies between client JS and server Node.js.
 
 ## Client-Side (PWA Frontend)
+
 **Root**: `/source/client/`  
 **Purpose**: Progressive Web App with offline-first capabilities, Gen 9 Pokédex UI, and on-device AI generation.
 
@@ -72,6 +74,7 @@ All projects must follow this root structure to ensure cleanliness and agent coh
 **Known Issues**: Safari has different IndexedDB quota limits; we implement adaptive cache policies.
 
 ## Server-Side (Crawler & API)
+
 **Root**: `/source/server/`  
 **Purpose**: Web crawler, data processing, tidbit synthesis, and CDN dataset publishing.
 
@@ -112,6 +115,7 @@ All projects must follow this root structure to ensure cleanliness and agent coh
 **Known Issues**: Puppeteer requires Chrome/Chromium; we provide Docker container.
 
 ## Scripts Directory
+
 **Root**: `/scripts/`  
 **Purpose**: Build automation, development tools, and deployment scripts.
 
@@ -127,6 +131,7 @@ All projects must follow this root structure to ensure cleanliness and agent coh
 ```
 
 ## Tests Directory
+
 **Root**: `/tests/`  
 **Purpose**: Comprehensive testing across unit, security, and integration levels.
 
@@ -152,6 +157,7 @@ All projects must follow this root structure to ensure cleanliness and agent coh
 ```
 
 ## Documentation Structure
+
 **Root**: `/docs/`  
 **Purpose**: Comprehensive documentation for agents, developers, and users.
 
@@ -183,6 +189,7 @@ All projects must follow this root structure to ensure cleanliness and agent coh
 ```
 
 ## Configuration Files
+
 **Root**: Project root  
 **Purpose**: Build tools, environment, and deployment configuration.
 
@@ -213,12 +220,14 @@ docker-compose.yml          # Multi-service Docker setup
 ```
 
 ## Data Flow and Interoperability
+
 **Client ↔ Server**: Client fetches dataset from CDN via HTTPS; server publishes versioned datasets.  
 **Storage**: IndexedDB (client) ↔ CDN (server) with version management and integrity checks.  
 **AI Processing**: WebLLM/WebSD run in Web Workers; server uses OpenRouter for tidbit synthesis.  
 **Update Policy**: Atomic version updates; graceful fallbacks for failed generations.
 
 ## File Naming Conventions
+
 - **Components**: `kebab-case.js` (e.g., `pokemon-card.js`)
 - **Utilities**: `camelCase.js` (e.g., `dataManager.js`)
 - **Constants**: `UPPER_SNAKE_CASE.js` (e.g., `API_ENDPOINTS.js`)
@@ -226,6 +235,7 @@ docker-compose.yml          # Multi-service Docker setup
 - **Documentation**: `Title Case.md`
 
 ## Git and Version Control
+
 - **`.env`**: For secrets (gitignored)
 - **`scratchpad.md`**: For task tracking and agent communication
 - **`README.md`**: Overview with AGENTS.md link

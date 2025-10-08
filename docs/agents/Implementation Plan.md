@@ -3,12 +3,14 @@
 This document provides a comprehensive sprint-based roadmap for Infinite Pokédex development, breaking the project into actionable steps using Agile/Scrum methodology with TCREI task structure.
 
 ## Sprint Overview
+
 **Total Duration**: 8 sprints (16 weeks)  
 **Sprint Length**: 2 weeks each  
 **Team**: AI agents + human oversight  
 **Methodology**: TCREI (Task, Context, Rules, Examples, Iteration)
 
 ## Sprint 1: Foundation & Setup
+
 **Goals**: Establish project foundation, development environment, and basic PWA structure.  
 **Duration**: 2 weeks  
 **Tasks**:
@@ -27,6 +29,7 @@ This document provides a comprehensive sprint-based roadmap for Infinite Pokéde
 **Known Issues**: Safari PWA limitations may require fallbacks.
 
 ## Sprint 2: Server Infrastructure & Crawler
+
 **Goals**: Build server-side crawler, data processing pipeline, and CDN publishing system.  
 **Duration**: 2 weeks  
 **Tasks**:
@@ -45,6 +48,7 @@ This document provides a comprehensive sprint-based roadmap for Infinite Pokéde
 **Known Issues**: Site structure changes may break parsers; we implement robust error handling.
 
 ## Sprint 3: Client Data Sync & Offline Support
+
 **Goals**: Implement client-side data synchronization, offline caching, and background updates.  
 **Duration**: 2 weeks  
 **Tasks**:
@@ -63,6 +67,7 @@ This document provides a comprehensive sprint-based roadmap for Infinite Pokéde
 **Known Issues**: Safari storage quotas may limit caching; we implement adaptive policies.
 
 ## Sprint 4: WebLLM Integration & Lore Generation
+
 **Goals**: Integrate WebLLM for on-device lore generation and implement dSpy prompting.  
 **Duration**: 2 weeks  
 **Tasks**:
@@ -81,6 +86,7 @@ This document provides a comprehensive sprint-based roadmap for Infinite Pokéde
 **Known Issues**: Low-end devices may struggle with model loading; we implement fallbacks.
 
 ## Sprint 5: WebSD Integration & Image Generation
+
 **Goals**: Integrate Web Stable Diffusion for image-to-image generation and artwork creation.  
 **Duration**: 2 weeks  
 **Tasks**:
@@ -99,6 +105,7 @@ This document provides a comprehensive sprint-based roadmap for Infinite Pokéde
 **Known Issues**: Image generation is resource-intensive; we implement quality scaling.
 
 ## Sprint 6: UI Polish & Animations
+
 **Goals**: Refine Gen 9 Pokédex UI, implement smooth animations, and optimize user experience.  
 **Duration**: 2 weeks  
 **Tasks**:
@@ -117,6 +124,7 @@ This document provides a comprehensive sprint-based roadmap for Infinite Pokéde
 **Known Issues**: Older devices may have animation performance issues; we implement reduced motion support.
 
 ## Sprint 7: Testing & Quality Assurance
+
 **Goals**: Comprehensive testing, security scanning, and performance optimization.  
 **Duration**: 2 weeks  
 **Tasks**:
@@ -135,6 +143,7 @@ This document provides a comprehensive sprint-based roadmap for Infinite Pokéde
 **Known Issues**: Some tests may be flaky; we implement retry logic and better error handling.
 
 ## Sprint 8: Deployment & Launch
+
 **Goals**: Deploy to production, set up monitoring, and prepare for launch.  
 **Duration**: 2 weeks  
 **Tasks**:
@@ -155,12 +164,14 @@ This document provides a comprehensive sprint-based roadmap for Infinite Pokéde
 ## Risk Management & Mitigation
 
 **High-Risk Items**:
+
 - WebLLM/WebSD performance on low-end devices → Implement quality scaling and fallbacks
 - External site changes breaking crawler → Robust error handling and parser updates
 - CDN costs and data transfer → Implement efficient caching and compression
 - Mobile browser compatibility → Extensive testing and graceful degradation
 
 **Contingency Plans**:
+
 - If AI models too heavy → Implement server-side generation with caching
 - If crawling fails → Use static dataset with manual updates
 - If PWA limitations → Provide web app fallback
@@ -169,6 +180,7 @@ This document provides a comprehensive sprint-based roadmap for Infinite Pokéde
 ## Success Criteria
 
 **Sprint Completion Criteria**:
+
 - All tasks completed with TCREI validation
 - Tests passing (unit, integration, security)
 - Documentation updated
@@ -176,6 +188,7 @@ This document provides a comprehensive sprint-based roadmap for Infinite Pokéde
 - Security scans clean
 
 **Project Completion Criteria**:
+
 - PWA installs and works offline
 - Lore generation produces quality content
 - Image generation creates relevant artwork

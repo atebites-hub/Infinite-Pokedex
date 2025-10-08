@@ -5,7 +5,9 @@ This document details how to maintain and use documentation for Infinite Pokéde
 ## Repo Documentation Structure
 
 ### Agent Reference Documents (`/docs/agents/`)
+
 Core context boundaries that define project scope and implementation guidelines:
+
 - **Project Requirements Doc.md** - High-level objectives, user flows, core features
 - **App Flow Doc.md** - User interface flows, state transitions, data interactions
 - **Tech Stack Doc.md** - Technologies, packages, dependencies, APIs
@@ -17,7 +19,9 @@ Core context boundaries that define project scope and implementation guidelines:
 - **Documentation Guidelines.md** - This document (format and policy)
 
 ### Code Documentation (`/docs/code/`)
+
 Per-module documentation with Mermaid diagrams and implementation details:
+
 - **client/** - Frontend code documentation
   - `pokedex.md` - Core Pokédex logic and state management
   - `storage.md` - IndexedDB wrapper and data persistence
@@ -30,7 +34,9 @@ Per-module documentation with Mermaid diagrams and implementation details:
   - `cdn-publisher.md` - Dataset building and CDN publishing
 
 ### Test Documentation (`/docs/tests/`)
+
 Testing guides and documentation:
+
 - **unit.md** - Unit testing guide with examples and coverage targets
 - **integration.md** - End-to-end testing scenarios and browser automation
 - **security.md** - Security testing and vulnerability scanning
@@ -39,6 +45,7 @@ Testing guides and documentation:
 ## Format and Policy
 
 ### Docstrings for All Functions
+
 Include comprehensive docstrings in all code files using JavaScript JSDoc format:
 
 ```javascript
@@ -62,6 +69,7 @@ async function generateLore(speciesId, options = {}) {
 ```
 
 ### Code Documentation Files
+
 Each module in `/docs/code/` must include:
 
 1. **Mermaid Diagram** - Visual representation of module structure and data flow
@@ -72,13 +80,15 @@ Each module in `/docs/code/` must include:
 
 #### Example: `/docs/code/client/pokedex.md`
 
-```markdown
+````markdown
 # Pokedex Core Logic
 
 ## Module Overview
+
 The Pokedex module manages the core application state, species data, and user interactions. It coordinates between storage, AI generation, and UI components.
 
 ## Mermaid Diagram
+
 ```mermaid
 graph TD
   A[PokedexEntry] --> B[loadData]
@@ -88,38 +98,47 @@ graph TD
   C --> F[WebLLM Worker]
   D --> G[WebSD Worker]
 ```
+````
 
 ## Functions
 
 ### PokedexEntry Class
+
 **Location**: `/source/client/js/components/pokedex-entry.js`
 **Purpose**: Manages individual Pokémon entry display and generation
 
 #### Constructor
+
 ```javascript
-constructor(speciesId, options = {})
+constructor(speciesId, (options = {}));
 ```
+
 - **Parameters**: `speciesId` (number), `options` (object)
 - **Returns**: PokedexEntry instance
 - **Preconditions**: Valid species ID exists in dataset
 - **Postconditions**: Entry ready for data loading
 
 #### loadData()
+
 ```javascript
 async loadData()
 ```
+
 - **Returns**: Promise<Object> - Species metadata and tidbits
 - **Preconditions**: IndexedDB contains species data
 - **Postconditions**: Entry populated with canonical data
 
 #### generateLore()
+
 ```javascript
 async generateLore(options = {})
 ```
+
 - **Returns**: Promise<Array> - Array of 5 lore panels
 - **Preconditions**: WebLLM model loaded, tidbits available
 - **Postconditions**: Lore displayed in UI with animations
-```
+
+````
 
 ### Test Documentation
 
@@ -145,14 +164,16 @@ describe('PokedexEntry', () => {
     expect(data.name).toBe('Charizard');
   });
 });
-```
+````
 
 ## Running Tests
+
 ```bash
 npm run test:unit
 jest tests/unit --coverage
 ```
-```
+
+````
 
 ### Integration Tests (`/docs/tests/integration.md`)
 Document end-to-end testing scenarios and browser automation:
@@ -178,11 +199,12 @@ Document end-to-end testing scenarios and browser automation:
 - **Chrome Android**: Primary target platform
 - **Safari iOS**: Secondary target platform
 - **Desktop**: Development and testing
-```
+````
 
 ## Sprint Documentation Policy
 
 ### End of Sprint Documentation Updates
+
 At the end of each sprint, update documentation as follows:
 
 **Sprint 1 (Foundation)**: Create basic code documentation structure
@@ -205,18 +227,21 @@ At the end of each sprint, update documentation as follows:
 ### Documentation Quality Standards
 
 #### Mermaid Diagrams
+
 - Use appropriate diagram types (flowchart, sequence, ER, state)
 - Include clear labels and relationships
 - Update diagrams when code structure changes
 - Use consistent styling and colors
 
 #### Code Examples
+
 - Provide working, tested code examples
 - Include error handling and edge cases
 - Show both basic and advanced usage
 - Update examples when APIs change
 
 #### Function Documentation
+
 - Include all required JSDoc tags
 - Provide clear parameter and return descriptions
 - Include usage examples in docstrings
@@ -225,22 +250,26 @@ At the end of each sprint, update documentation as follows:
 ## Agent Responsibilities
 
 ### Before Starting Work
+
 1. **Read Current Documentation**: Review relevant docs in `/docs/agents/`
 2. **Check Existing Code Docs**: Look for existing documentation in `/docs/code/`
 3. **Plan Documentation Updates**: Identify what docs need updating
 
 ### During Development
+
 1. **Update Docstrings**: Add/update JSDoc comments for all functions
 2. **Create Code Docs**: Add new documentation files for new modules
 3. **Update Existing Docs**: Modify existing docs when changing code
 
 ### After Completing Work
+
 1. **Verify Documentation**: Ensure all new code is documented
 2. **Update Mermaid Diagrams**: Refresh diagrams if structure changed
 3. **Test Documentation**: Verify examples and code snippets work
 4. **Update Test Docs**: Add test documentation for new functionality
 
 ### Documentation Review Checklist
+
 - [ ] All new functions have JSDoc docstrings
 - [ ] All new modules have documentation files
 - [ ] Mermaid diagrams are accurate and up-to-date
@@ -251,18 +280,21 @@ At the end of each sprint, update documentation as follows:
 ## Documentation Tools and Automation
 
 ### JSDoc Generation
+
 ```bash
 # Generate API documentation from JSDoc comments
 npm run docs:generate
 ```
 
 ### Mermaid Diagram Validation
+
 ```bash
 # Validate Mermaid diagrams in documentation
 npm run docs:validate-diagrams
 ```
 
 ### Documentation Linting
+
 ```bash
 # Check documentation for broken links and formatting
 npm run docs:lint
@@ -271,33 +303,41 @@ npm run docs:lint
 ## Documentation Standards
 
 ### File Naming
+
 - **Code Docs**: `kebab-case.md` (e.g., `pokedex-entry.md`)
 - **Test Docs**: `kebab-case.md` (e.g., `unit-testing.md`)
 - **Agent Docs**: `Title Case.md` (e.g., `Project Requirements Doc.md`)
 
 ### Markdown Formatting
+
 - Use consistent heading hierarchy (H1 for main title, H2 for sections)
 - Include table of contents for long documents
 - Use code blocks with language specification
 - Include links to related documentation
 
 ### Code Documentation Structure
+
 ```markdown
 # Module Name
 
 ## Overview
+
 Brief description of what the module does.
 
 ## Mermaid Diagram
+
 [Visual representation of module structure]
 
 ## Functions
+
 [Detailed function documentation]
 
 ## Usage Examples
+
 [Code examples showing how to use the module]
 
 ## Dependencies
+
 [Other modules or services required]
 ```
 
