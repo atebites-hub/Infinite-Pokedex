@@ -26,27 +26,32 @@ Main class for managing dataset versions and integrity.
 **Location**: `source/client/js/version.js`
 
 **Dependencies**:
+
 - `storage.js` - IndexedDB wrapper
 - `logger.js` - Logging utilities
 
 **Key Methods**:
 
 #### `initialize()`
+
 Initializes the version manager and loads the current version from storage.
 
 **Preconditions**: IndexedDB is available
 **Postconditions**: Current version is loaded from storage
 
 #### `compareVersions(v1, v2)`
+
 Compares two semantic version strings.
 
 **Parameters**:
+
 - `v1` (string) - First version
 - `v2` (string) - Second version
 
 **Returns**: -1 if v1 < v2, 0 if equal, 1 if v1 > v2
 
 **Examples**:
+
 ```javascript
 compareVersions('1.0.0', '1.0.1'); // -1
 compareVersions('2.0.0', '1.5.0'); // 1
@@ -54,9 +59,11 @@ compareVersions('1.2.3', '1.2.3'); // 0
 ```
 
 #### `checkForUpdates(manifestUrl)`
+
 Checks if a new version is available by fetching the manifest.
 
 **Parameters**:
+
 - `manifestUrl` (string) - URL to the manifest file
 
 **Returns**: Promise<boolean> - True if new version available
@@ -65,9 +72,11 @@ Checks if a new version is available by fetching the manifest.
 **Postconditions**: Returns boolean indicating if update is available
 
 #### `verifyIntegrity(data, expectedHash)`
+
 Verifies data integrity using SHA-256 checksums.
 
 **Parameters**:
+
 - `data` (Object) - Data to verify
 - `expectedHash` (string) - Expected SHA-256 hash
 
@@ -77,32 +86,39 @@ Verifies data integrity using SHA-256 checksums.
 **Postconditions**: Returns boolean indicating if data matches hash
 
 #### `validateManifest(manifest)`
+
 Validates manifest structure and required fields.
 
 **Parameters**:
+
 - `manifest` (Object) - Manifest to validate
 
 **Returns**: boolean - True if manifest is valid
 
 **Required Fields**:
+
 - `version` - Semantic version string
 - `timestamp` - Unix timestamp
 - `files` - Array of file objects
 - `totalSize` - Total size in bytes
 
 #### `updateVersion(newVersion)`
+
 Updates to a new version in storage.
 
 **Parameters**:
+
 - `newVersion` (string) - New version to set
 
 **Preconditions**: newVersion is a valid version string
 **Postconditions**: Current version is updated in storage
 
 #### `migrateData(fromVersion, toVersion)`
+
 Performs data migration if needed between versions.
 
 **Parameters**:
+
 - `fromVersion` (string) - Version to migrate from
 - `toVersion` (string) - Version to migrate to
 
@@ -144,7 +160,9 @@ All downloaded data is verified using SHA-256 hashes:
 ### Integrity Check Process
 
 ```javascript
-const data = { /* species data */ };
+const data = {
+  /* species data */
+};
 const expectedHash = 'abc123...';
 
 const isValid = await versionManager.verifyIntegrity(data, expectedHash);
@@ -257,6 +275,7 @@ Migrations run automatically during sync:
 **Location**: `tests/unit/version.test.js`
 
 **Coverage**:
+
 - Version comparison
 - Integrity verification
 - Manifest validation

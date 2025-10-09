@@ -26,47 +26,58 @@ Manages offline state and provides fallback mechanisms.
 **Location**: `source/client/js/offline.js`
 
 **Dependencies**:
+
 - `logger.js` - Logging utilities
 - `storage.js` - IndexedDB wrapper
 
 **Key Methods**:
 
 #### `getOnlineStatus()`
+
 Returns the current online/offline status.
 
 **Returns**: boolean - True if online
 
 #### `addListener(callback)`
+
 Registers a listener for online/offline changes.
 
 **Parameters**:
+
 - `callback` (Function) - Callback function (isOnline) => void
 
 #### `addToRetryQueue(request, options)`
+
 Adds a failed request to the retry queue.
 
 **Parameters**:
+
 - `request` (Request|Function) - Request to retry
 - `options` (Object) - Retry options (maxAttempts, etc.)
 
 #### `processRetryQueue()`
+
 Processes all queued requests when connection is restored.
 
 **Preconditions**: Connection is online
 **Postconditions**: All queued requests are retried
 
 #### `handleFetch(request)`
+
 Handles fetch with offline fallback.
 
 **Parameters**:
+
 - `request` (Request) - The request to handle
 
 **Returns**: Promise<Response> - Response from network or cache
 
 #### `getOfflineFallback(request)`
+
 Gets appropriate fallback response for offline requests.
 
 **Parameters**:
+
 - `request` (Request) - The failed request
 
 **Returns**: Promise<Response> - Fallback response
@@ -78,32 +89,39 @@ Centralized error management and logging.
 **Location**: `source/client/js/offline.js`
 
 **Dependencies**:
+
 - `logger.js` - Logging utilities
 - `storage.js` - IndexedDB wrapper
 
 **Key Methods**:
 
 #### `handleError(error, context)`
+
 Handles an error by logging and storing it.
 
 **Parameters**:
+
 - `error` (Error|string) - The error to handle
 - `context` (Object) - Additional context
 
 #### `getErrorLog()`
+
 Returns the current error log.
 
 **Returns**: Array - Array of error entries
 
 #### `clearErrorLog()`
+
 Clears the in-memory error log.
 
 #### `getStoredErrors()`
+
 Retrieves errors from IndexedDB.
 
 **Returns**: Promise<Array> - Stored errors
 
 #### `clearStoredErrors()`
+
 Clears stored errors from IndexedDB.
 
 ## Online/Offline Detection
@@ -143,10 +161,7 @@ Failed requests are automatically added to the retry queue:
 try {
   await fetch('/api/data');
 } catch (error) {
-  offlineManager.addToRetryQueue(
-    () => fetch('/api/data'),
-    { maxAttempts: 3 }
-  );
+  offlineManager.addToRetryQueue(() => fetch('/api/data'), { maxAttempts: 3 });
 }
 ```
 
@@ -209,6 +224,7 @@ For images, return SVG placeholder:
 ### Design
 
 The offline page provides:
+
 - Clear offline status message
 - Connection check button
 - Automatic retry when online
@@ -267,6 +283,7 @@ Errors are stored in IndexedDB for debugging:
 ### With Service Worker
 
 The Service Worker uses offline manager for:
+
 - Cache fallbacks
 - Offline page serving
 - Request retry coordination
@@ -274,6 +291,7 @@ The Service Worker uses offline manager for:
 ### With CDN Sync
 
 The sync system uses offline manager for:
+
 - Network failure detection
 - Automatic retry when online
 - Progress updates during offline periods
@@ -281,6 +299,7 @@ The sync system uses offline manager for:
 ### With UI
 
 The UI uses offline manager for:
+
 - Status indicators
 - Offline messaging
 - Retry notifications
@@ -292,6 +311,7 @@ The UI uses offline manager for:
 **Location**: `tests/unit/offline.test.js`
 
 **Coverage**:
+
 - Online/offline detection
 - Listener management
 - Retry queue

@@ -1,0 +1,9 @@
+{
+  "crawlStart": "2025-10-08T23:48:02.197Z",
+  "sitesCrawled": ["bulbapedia", "serebii", "smogon", "reddit"],
+  "totalPages": 50,
+  "relevantPages": 47,
+  "totalContentLength": 1274310,
+  "crawlEnd": "2025-10-08T23:49:25.186Z",
+  "duration": 82989
+}

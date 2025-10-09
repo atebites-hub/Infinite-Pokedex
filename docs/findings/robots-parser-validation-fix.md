@@ -14,6 +14,7 @@ The `RobotsParser.parseRobotsTxt()` method in `BaseCrawler` didn't correctly han
 3. **Had redundant code**: Called `.toLowerCase()` on directives that were already lowercased
 
 This could result in:
+
 - Silent failures when debugging robots.txt parsing issues
 - Potential unexpected behavior with edge cases like `: value` (empty directive)
 - Reduced code maintainability due to redundancy
@@ -23,6 +24,7 @@ This could result in:
 ### Code Changes (lines 520-532, 534-547)
 
 **Before:**
+
 ```javascript
 const colonIndex = trimmed.indexOf(':');
 if (colonIndex === -1) continue;
@@ -36,6 +38,7 @@ if (directive.toLowerCase() === 'user-agent') {
 ```
 
 **After:**
+
 ```javascript
 const colonIndex = trimmed.indexOf(':');
 if (colonIndex === -1) {

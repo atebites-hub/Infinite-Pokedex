@@ -226,7 +226,9 @@ describe('TidbitSynthesizer', () => {
       };
       expect(() => {
         synthesizer.extractResponseContent(response, 'test');
-      }).toThrow('Invalid response structure in test: missing or invalid choices array');
+      }).toThrow(
+        'Invalid response structure in test: missing or invalid choices array'
+      );
     });
 
     it('should throw error when choices is not an array', () => {
@@ -238,7 +240,9 @@ describe('TidbitSynthesizer', () => {
       };
       expect(() => {
         synthesizer.extractResponseContent(response, 'test');
-      }).toThrow('Invalid response structure in test: missing or invalid choices array');
+      }).toThrow(
+        'Invalid response structure in test: missing or invalid choices array'
+      );
     });
 
     it('should throw error when choices array is empty', () => {
@@ -262,7 +266,9 @@ describe('TidbitSynthesizer', () => {
       };
       expect(() => {
         synthesizer.extractResponseContent(response, 'test');
-      }).toThrow('Invalid response structure in test: missing message in first choice');
+      }).toThrow(
+        'Invalid response structure in test: missing message in first choice'
+      );
     });
 
     it('should throw error when content is missing', () => {
@@ -278,7 +284,9 @@ describe('TidbitSynthesizer', () => {
       };
       expect(() => {
         synthesizer.extractResponseContent(response, 'test');
-      }).toThrow('Invalid response structure in test: missing or invalid content in message');
+      }).toThrow(
+        'Invalid response structure in test: missing or invalid content in message'
+      );
     });
 
     it('should throw error when content is not a string', () => {
@@ -296,7 +304,9 @@ describe('TidbitSynthesizer', () => {
       };
       expect(() => {
         synthesizer.extractResponseContent(response, 'test');
-      }).toThrow('Invalid response structure in test: missing or invalid content in message');
+      }).toThrow(
+        'Invalid response structure in test: missing or invalid content in message'
+      );
     });
 
     it('should include context in error messages', () => {

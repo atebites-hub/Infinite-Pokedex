@@ -1,7 +1,7 @@
 /**
  * Sync Progress UI Components
  * Handles displaying sync progress, status, and notifications
- * 
+ *
  * @module sync-ui
  */
 
@@ -22,7 +22,7 @@ export class SyncUI {
 
   /**
    * Initialize the sync UI
-   * 
+   *
    * Pre: DOM is loaded
    * Post: UI elements are created and event listeners registered
    * @return {void}
@@ -35,7 +35,7 @@ export class SyncUI {
 
   /**
    * Create UI elements
-   * 
+   *
    * Pre: None
    * Post: UI elements are created and added to DOM
    * @return {void}
@@ -148,7 +148,7 @@ export class SyncUI {
 
   /**
    * Set up event listeners
-   * 
+   *
    * Pre: UI elements are created
    * Post: Event listeners are registered
    * @return {void}
@@ -169,7 +169,7 @@ export class SyncUI {
 
   /**
    * Show the sync UI
-   * 
+   *
    * Pre: UI is initialized
    * Post: UI is visible
    * @return {void}
@@ -186,7 +186,7 @@ export class SyncUI {
 
   /**
    * Hide the sync UI
-   * 
+   *
    * Pre: UI is initialized
    * Post: UI is hidden
    * @return {void}
@@ -201,7 +201,7 @@ export class SyncUI {
 
   /**
    * Update progress display
-   * 
+   *
    * Pre: UI is initialized
    * Post: Progress bar and text are updated
    * @param {number} current - Current progress
@@ -223,7 +223,7 @@ export class SyncUI {
 
   /**
    * Show completion message
-   * 
+   *
    * Pre: Sync is complete
    * Post: UI shows completion message and auto-hides
    * @return {void}
@@ -241,7 +241,7 @@ export class SyncUI {
 
   /**
    * Show error message
-   * 
+   *
    * Pre: Sync encountered an error
    * Post: UI shows error message
    * @param {string} message - Error message
@@ -257,7 +257,7 @@ export class SyncUI {
 
   /**
    * Show offline message
-   * 
+   *
    * Pre: Device went offline
    * Post: UI shows offline message
    * @return {void}
@@ -266,13 +266,14 @@ export class SyncUI {
     if (!this.statusText) return;
 
     this.show();
-    this.statusText.textContent = 'You are offline. Sync will resume when online.';
+    this.statusText.textContent =
+      'You are offline. Sync will resume when online.';
     this.statusText.style.color = '#ffc107';
   }
 
   /**
    * Reset UI to initial state
-   * 
+   *
    * Pre: UI is initialized
    * Post: UI is reset to initial state
    * @return {void}
@@ -298,7 +299,7 @@ export class SyncNotifications {
 
   /**
    * Check notification permission
-   * 
+   *
    * Pre: None
    * Post: Permission status is updated
    * @return {void}
@@ -311,7 +312,7 @@ export class SyncNotifications {
 
   /**
    * Request notification permission
-   * 
+   *
    * Pre: Notifications API is available
    * Post: Permission is requested from user
    * @return {Promise<string>} Permission status
@@ -334,7 +335,7 @@ export class SyncNotifications {
 
   /**
    * Show a notification
-   * 
+   *
    * Pre: Permission is granted
    * Post: Notification is displayed
    * @param {string} title - Notification title
@@ -363,7 +364,7 @@ export class SyncNotifications {
 
   /**
    * Show sync complete notification
-   * 
+   *
    * Pre: Sync completed successfully
    * Post: Notification is displayed
    * @param {number} count - Number of items synced
@@ -378,7 +379,7 @@ export class SyncNotifications {
 
   /**
    * Show sync error notification
-   * 
+   *
    * Pre: Sync encountered an error
    * Post: Notification is displayed
    * @param {string} error - Error message
@@ -393,7 +394,7 @@ export class SyncNotifications {
 
   /**
    * Show update available notification
-   * 
+   *
    * Pre: New version is available
    * Post: Notification is displayed
    * @return {Notification|null} Notification instance

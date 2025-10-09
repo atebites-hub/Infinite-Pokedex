@@ -1,6 +1,6 @@
 /**
  * Unit tests for validation utilities
- * 
+ *
  * Tests schema validation and text sanitization functions
  */
 
@@ -72,15 +72,15 @@ describe('sanitizeText', () => {
   });
 
   it('should handle mixed Unicode and ASCII', () => {
-    const input = 'Pokémon like Flabébé and Farfetch\'d';
+    const input = "Pokémon like Flabébé and Farfetch'd";
     const result = sanitizeText(input);
-    expect(result).toBe('Pokémon like Flabébé and Farfetch\'d');
+    expect(result).toBe("Pokémon like Flabébé and Farfetch'd");
   });
 
   it('should preserve common punctuation', () => {
-    const input = 'Hello! How are you? I\'m fine, thanks.';
+    const input = "Hello! How are you? I'm fine, thanks.";
     const result = sanitizeText(input);
-    expect(result).toBe('Hello! How are you? I\'m fine, thanks.');
+    expect(result).toBe("Hello! How are you? I'm fine, thanks.");
   });
 
   it('should handle empty string', () => {
@@ -110,10 +110,10 @@ describe('validateSchema', () => {
       name: { type: 'string', required: true },
       age: { type: 'number', required: true },
     };
-    
+
     const validData = { name: 'Pikachu', age: 25 };
     const result = validateSchema(validData, schema);
-    
+
     expect(result.valid).toBe(true);
     expect(result.errors).toHaveLength(0);
   });
@@ -123,10 +123,10 @@ describe('validateSchema', () => {
       name: { type: 'string', required: true },
       age: { type: 'number', required: true },
     };
-    
+
     const invalidData = { name: 'Pikachu' };
     const result = validateSchema(invalidData, schema);
-    
+
     expect(result.valid).toBe(false);
     expect(result.errors).toContain('Missing required field: age');
   });
@@ -136,10 +136,10 @@ describe('validateSchema', () => {
       name: { type: 'string' },
       age: { type: 'number' },
     };
-    
+
     const invalidData = { name: 'Pikachu', age: '25' };
     const result = validateSchema(invalidData, schema);
-    
+
     expect(result.valid).toBe(false);
     expect(result.errors.length).toBeGreaterThan(0);
   });
@@ -148,10 +148,10 @@ describe('validateSchema', () => {
     const schema = {
       types: { type: 'array', maxLength: 2 },
     };
-    
+
     const data = { types: ['electric', 'flying', 'fire'] };
     const result = validateSchema(data, schema);
-    
+
     expect(result.warnings.length).toBeGreaterThan(0);
   });
 });
@@ -164,7 +164,7 @@ describe('validateSpecies', () => {
       types: ['electric'],
       sources: { bulbapedia: 'https://example.com' },
     };
-    
+
     const result = validateSpecies(species);
     expect(result.valid).toBe(true);
   });
@@ -174,7 +174,7 @@ describe('validateSpecies', () => {
       name: 'Pikachu',
       types: ['electric'],
     };
-    
+
     const result = validateSpecies(species);
     expect(result.valid).toBe(false);
   });
@@ -187,7 +187,7 @@ describe('validateTidbit', () => {
       body: 'Pikachu is based on a mouse.',
       sourceRefs: ['bulbapedia'],
     };
-    
+
     const result = validateTidbit(tidbit);
     expect(result.valid).toBe(true);
   });

@@ -11,6 +11,8 @@
 
 import axios from 'axios';
 import crypto from 'crypto';
+import { promises as fs } from 'fs';
+import { join } from 'path';
 import { logger } from '../utils/logger.js';
 import {
   getModelConfig,
@@ -28,28 +30,33 @@ export class TidbitSynthesizer {
     this.baseUrl = 'https://openrouter.ai/api/v1';
     this.cache = new Map();
 
-    if (!this.apiKey) {
-      throw new Error('OpenRouter API key is required');
+    // Allow mock mode without API key for testing
+    if (!this.apiKey && !config.mockMode) {
+      throw new Error(
+        'OpenRouter API key is required (or set mockMode: true for testing)'
+      );
     }
 
-    // Initialize HTTP client
-    this.client = axios.create({
-      baseURL: this.baseUrl,
-      headers: {
-        Authorization: `Bearer ${this.apiKey}`,
-        'Content-Type': 'application/json',
-        'User-Agent': 'InfinitePokedexBot/1.0',
-      },
-      timeout: 30000,
-    });
+    // Initialize HTTP client only if not in mock mode
+    if (!config.mockMode) {
+      this.client = axios.create({
+        baseURL: this.baseUrl,
+        headers: {
+          Authorization: `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json',
+          'User-Agent': 'InfinitePokedexBot/1.0',
+        },
+        timeout: 30000,
+      });
+    }
   }
 
   /**
    * Safely extract content from OpenRouter API response
-   * 
+   *
    * Pre: response object from axios HTTP call
    * Post: returns content string or throws descriptive error
-   * 
+   *
    * @param {Object} response - Axios response object
    * @param {string} context - Context string for error messages (e.g., 'tidbit generation')
    * @returns {string} Extracted message content
@@ -57,23 +64,33 @@ export class TidbitSynthesizer {
    */
   extractResponseContent(response, context = 'API call') {
     if (!response || !response.data) {
-      throw new Error(`Invalid response structure in ${context}: missing response.data`);
+      throw new Error(
+        `Invalid response structure in ${context}: missing response.data`
+      );
     }
 
     if (!response.data.choices || !Array.isArray(response.data.choices)) {
-      throw new Error(`Invalid response structure in ${context}: missing or invalid choices array`);
+      throw new Error(
+        `Invalid response structure in ${context}: missing or invalid choices array`
+      );
     }
 
     if (response.data.choices.length === 0) {
-      throw new Error(`Invalid response structure in ${context}: choices array is empty`);
+      throw new Error(
+        `Invalid response structure in ${context}: choices array is empty`
+      );
     }
 
     if (!response.data.choices[0].message) {
-      throw new Error(`Invalid response structure in ${context}: missing message in first choice`);
+      throw new Error(
+        `Invalid response structure in ${context}: missing message in first choice`
+      );
     }
 
     if (typeof response.data.choices[0].message.content !== 'string') {
-      throw new Error(`Invalid response structure in ${context}: missing or invalid content in message`);
+      throw new Error(
+        `Invalid response structure in ${context}: missing or invalid content in message`
+      );
     }
 
     return response.data.choices[0].message.content;
@@ -148,10 +165,14 @@ export class TidbitSynthesizer {
         return { ...speciesData, tidbits: cached };
       }
 
-      // Generate tidbits
+      // Extract pokemon name for RAG context
+      const pokemonName = speciesData.name || `pokemon-${speciesId}`;
+
+      // Generate tidbits with RAG context
       const tidbits = await this.generateTidbits(
         speciesDataText,
-        forumDataText
+        forumDataText,
+        pokemonName
       );
 
       // Validate and filter tidbits
@@ -171,26 +192,269 @@ export class TidbitSynthesizer {
   }
 
   /**
+   * Load RAG context from comprehensive crawl data
+   * @param {string} pokemonName - Name of the Pokémon
+   * @returns {Promise<Object>} RAG context with relevant content
+   */
+  async loadRagContext(pokemonName) {
+    try {
+      const crawlResultsPath = join(
+        process.cwd(),
+        'comprehensive-crawl-results.csv'
+      );
+      const crawlSummaryPath = join(
+        process.cwd(),
+        'comprehensive-crawl-summary.json'
+      );
+
+      // Try to load summary first for metadata
+      let summary = { totalContentLength: 0, relevantPages: 0 };
+
+      try {
+        const summaryData = await fs.readFile(crawlSummaryPath, 'utf8');
+        summary = JSON.parse(summaryData);
+      } catch (error) {
+        logger.warn('Could not load crawl summary, using defaults');
+      }
+
+      // Load and filter crawl results for this Pokémon
+      let relevantContent = [];
+
+      try {
+        const csvData = await fs.readFile(crawlResultsPath, 'utf8');
+        const lines = csvData.split('\n').slice(1); // Skip header
+
+        for (const line of lines) {
+          if (!line.trim()) continue;
+
+          const columns = line
+            .split(',')
+            .map((col) => col.replace(/^"|"$/g, ''));
+          if (columns.length >= 7) {
+            const [
+              url,
+              title,
+              contentLength,
+              depth,
+              crawledAt,
+              isRelevant,
+              contentPreview,
+            ] = columns;
+
+            if (isRelevant === 'true') {
+              relevantContent.push({
+                url,
+                title,
+                contentLength: parseInt(contentLength),
+                content: contentPreview,
+                source: this.extractSourceFromUrl(url),
+              });
+            }
+          }
+        }
+      } catch (error) {
+        logger.warn('Could not load crawl results, using empty RAG context');
+      }
+
+      // Prioritize and limit content to fit context window
+      const prioritizedContent = this.prioritizeRagContent(
+        relevantContent,
+        pokemonName
+      );
+      const contextWindow = this.buildContextWindow(prioritizedContent);
+
+      return {
+        pokemonName,
+        totalContentLength: summary.totalContentLength || 0,
+        relevantPages: summary.relevantPages || 0,
+        sourcesUsed: [...new Set(prioritizedContent.map((c) => c.source))],
+        contextWindow,
+        prioritizedContent,
+      };
+    } catch (error) {
+      logger.warn('Failed to load RAG context:', error.message);
+      return {
+        pokemonName,
+        totalContentLength: 0,
+        relevantPages: 0,
+        sourcesUsed: [],
+        contextWindow: '',
+        prioritizedContent: [],
+      };
+    }
+  }
+
+  /**
+   * Extract source name from URL
+   * @param {string} url - URL to analyze
+   * @returns {string} Source name
+   */
+  extractSourceFromUrl(url) {
+    if (url.includes('bulbapedia')) return 'bulbapedia';
+    if (url.includes('smogon.com')) return 'smogon';
+    if (url.includes('serebii.net')) return 'serebii';
+    if (url.includes('reddit.com')) return 'reddit';
+    return 'unknown';
+  }
+
+  /**
+   * Prioritize RAG content by relevance and source quality
+   * @param {Array} content - Array of content items
+   * @param {string} pokemonName - Name of the Pokémon
+   * @returns {Array} Prioritized content
+   */
+  prioritizeRagContent(content, pokemonName) {
+    const sourcePriority = {
+      bulbapedia: 10, // Highest quality - official wiki
+      smogon: 8, // Strategy guides - detailed analysis
+      serebii: 7, // Comprehensive database
+      reddit: 5, // Community discussions
+      unknown: 1,
+    };
+
+    return content
+      .map((item) => ({
+        ...item,
+        priority: sourcePriority[item.source] || 1,
+        relevanceScore: this.calculateRelevanceScore(item, pokemonName),
+      }))
+      .sort(
+        (a, b) => b.priority * b.relevanceScore - a.priority * a.relevanceScore
+      );
+  }
+
+  /**
+   * Calculate relevance score for content
+   * @param {Object} item - Content item
+   * @param {string} pokemonName - Name of the Pokémon
+   * @returns {number} Relevance score (0-1)
+   */
+  calculateRelevanceScore(item, pokemonName) {
+    const text = (item.title + ' ' + item.content).toLowerCase();
+    const pokemonTerms = [pokemonName.toLowerCase(), 'pokémon', 'pokemon'];
+
+    let score = 0;
+    for (const term of pokemonTerms) {
+      if (text.includes(term)) score += 0.3;
+    }
+
+    // Bonus for longer, more detailed content
+    if (item.contentLength > 1000) score += 0.2;
+    if (item.contentLength > 5000) score += 0.2;
+
+    // Bonus for strategy/analysis content
+    if (
+      text.includes('strategy') ||
+      text.includes('competitive') ||
+      text.includes('analysis')
+    ) {
+      score += 0.3;
+    }
+
+    return Math.min(score, 1);
+  }
+
+  /**
+   * Build context window from prioritized content
+   * @param {Array} prioritizedContent - Prioritized content array
+   * @returns {string} Context window text
+   */
+  buildContextWindow(prioritizedContent) {
+    const maxContextLength = 8000; // Leave room for prompt and response
+    let contextParts = [];
+    let currentLength = 0;
+
+    for (const item of prioritizedContent) {
+      const part = `[${item.source.toUpperCase()}] ${item.title}\n${item.content}\n`;
+      if (currentLength + part.length <= maxContextLength) {
+        contextParts.push(part);
+        currentLength += part.length;
+      } else {
+        break; // Context window full
+      }
+    }
+
+    return contextParts.join('\n---\n');
+  }
+
+  /**
+   * Build RAG-enhanced prompt
+   * @param {string} speciesData - Basic species data
+   * @param {string} forumData - Forum data
+   * @param {Object} ragContext - RAG context
+   * @returns {string} Enhanced prompt
+   */
+  buildRagPrompt(speciesData, forumData, ragContext) {
+    const contextWindow =
+      ragContext.contextWindow || 'No additional context available.';
+
+    return `You are creating "iceberg" tidbits for ${ragContext.pokemonName} using comprehensive web research.
+
+WEB RESEARCH CONTEXT (${ragContext.sourcesUsed.join(', ')} - ${ragContext.relevantPages} pages, ${ragContext.totalContentLength} chars):
+${contextWindow}
+
+BASIC SPECIES DATA:
+${speciesData}
+
+FORUM DISCUSSIONS:
+${forumData}
+
+INSTRUCTIONS:
+Create 5 intriguing tidbits that reveal hidden depths of ${ragContext.pokemonName}'s lore. Use the web research context to find connections, theories, and obscure facts that fans would find fascinating.
+
+For each tidbit:
+- Title: 2-6 compelling words
+- Body: 1-3 sentences explaining the theory/fact/connection
+- Make it mysterious and iceberg-like (surface facts → deeper mysteries)
+- Reference specific sources when possible
+- Focus on: evolution mysteries, competitive strategies, real-world inspirations, fan theories, cultural connections
+
+Format as JSON:
+{
+  "tidbits": [
+    {
+      "title": "Tidbit Title",
+      "body": "Detailed explanation...",
+      "sourceRefs": ["bulbapedia", "smogon"]
+    }
+  ]
+}`;
+  }
+
+  /**
    * Generate tidbits using LLM
    * @param {string} speciesData - Formatted species data
    * @param {string} forumData - Forum discussion data
    * @returns {Promise<Array>} Generated tidbits
    */
-  async generateTidbits(speciesData, forumData) {
+  async generateTidbits(speciesData, forumData, pokemonName = 'bulbasaur') {
+    // Mock mode for testing without API key
+    if (this.config.mockMode) {
+      return this.generateMockTidbits(speciesData, forumData);
+    }
+
     try {
+      // Load comprehensive crawl data for RAG
+      const ragContext = await this.loadRagContext(pokemonName);
+
+      // Get model config (uses OPENROUTER_MODEL_ID from .env)
       const modelConfig = getModelConfig('tidbitSynthesis');
-      const prompt = getPrompt('tidbitSynthesis', {
-        speciesData,
-        forumData,
-      });
+
+      // Build RAG-enhanced prompt
+      const prompt = this.buildRagPrompt(speciesData, forumData, ragContext);
+
+      logger.info(
+        `Generating tidbits for ${pokemonName} using model: ${modelConfig.model} with ${ragContext.totalContentLength || 0} chars of RAG context`
+      );
 
       const response = await this.client.post('/chat/completions', {
         model: modelConfig.model,
         messages: [
           {
             role: 'system',
-            content:
-              'You are an expert Pokémon lore researcher creating "iceberg" content for a Pokédex app. Generate intriguing, accurate tidbits based on the provided data.',
+            content: `You are an expert Pokémon lore researcher creating "iceberg" content for a Pokédex app.
+            You have access to comprehensive web-crawled data from Bulbapedia, Smogon strategy guides, Serebii, and community forums.
+            Generate intriguing, accurate tidbits that reveal hidden depths of Pokémon lore and connections.`,
           },
           {
             role: 'user',
@@ -205,10 +469,15 @@ export class TidbitSynthesizer {
       });
 
       if (response.status !== 200) {
-        throw new Error(`OpenRouter API error: ${response.status}`);
+        throw new Error(
+          `OpenRouter API error: ${response.status} - ${response.data?.error?.message || 'Unknown error'}`
+        );
       }
 
-      const content = this.extractResponseContent(response, 'tidbit generation');
+      const content = this.extractResponseContent(
+        response,
+        'tidbit generation'
+      );
       const parsed = this.parseTidbitsResponse(content);
 
       return parsed.tidbits || [];
@@ -217,7 +486,11 @@ export class TidbitSynthesizer {
 
       // Try fallback model
       try {
-        return await this.generateTidbitsFallback(speciesData, forumData);
+        return await this.generateTidbitsFallback(
+          speciesData,
+          forumData,
+          pokemonName
+        );
       } catch (fallbackError) {
         logger.error(
           'Fallback tidbit generation failed:',
@@ -234,7 +507,11 @@ export class TidbitSynthesizer {
    * @param {string} forumData - Forum discussion data
    * @returns {Promise<Array>} Generated tidbits
    */
-  async generateTidbitsFallback(speciesData, forumData) {
+  async generateTidbitsFallback(
+    speciesData,
+    forumData,
+    pokemonName = 'bulbasaur'
+  ) {
     const modelConfig = getModelConfig('fallback');
     const prompt = getPrompt('tidbitSynthesis', {
       speciesData,
@@ -259,10 +536,66 @@ export class TidbitSynthesizer {
       top_p: modelConfig.topP,
     });
 
-    const content = this.extractResponseContent(response, 'fallback tidbit generation');
+    const content = this.extractResponseContent(
+      response,
+      'fallback tidbit generation'
+    );
     const parsed = this.parseTidbitsResponse(content);
 
     return parsed.tidbits || [];
+  }
+
+  /**
+   * Generate mock tidbits for testing without API
+   * @param {string} speciesData - Formatted species data
+   * @param {string} forumData - Forum discussion data
+   * @returns {Array} Mock tidbits
+   */
+  generateMockTidbits(speciesData, forumData) {
+    logger.info('Generating mock tidbits (no API key configured)');
+
+    // Simulate processing time
+    // Simulate processing delay
+    const tidbits = [
+      {
+        title: 'Ancient Origins',
+        body: 'This Pokémon has roots tracing back to ancient civilizations, where it was revered as a guardian of nature and balance.',
+        sourceRefs: ['historical_records', 'archaeological_findings'],
+        generatedAt: new Date().toISOString(),
+        qualityScore: { accuracy: 4, interest: 5, clarity: 4 },
+      },
+      {
+        title: 'Hidden Abilities',
+        body: 'Beyond its visible powers, this Pokémon possesses latent abilities that manifest only under specific environmental conditions.',
+        sourceRefs: ['field_research', 'laboratory_studies'],
+        generatedAt: new Date().toISOString(),
+        qualityScore: { accuracy: 5, interest: 4, clarity: 5 },
+      },
+      {
+        title: 'Cultural Significance',
+        body: 'In various cultures, this Pokémon symbolizes resilience and adaptation, appearing in myths and legends across different regions.',
+        sourceRefs: ['cultural_studies', 'mythological_texts'],
+        generatedAt: new Date().toISOString(),
+        qualityScore: { accuracy: 3, interest: 5, clarity: 4 },
+      },
+      {
+        title: 'Evolutionary Mysteries',
+        body: 'The evolutionary path of this Pokémon holds secrets that scientists are still working to unravel, with unusual patterns observed in wild populations.',
+        sourceRefs: ['evolutionary_biology', 'field_observations'],
+        generatedAt: new Date().toISOString(),
+        qualityScore: { accuracy: 4, interest: 4, clarity: 3 },
+      },
+      {
+        title: 'Trainer Bonds',
+        body: 'This Pokémon forms unusually deep bonds with trainers who demonstrate patience and understanding, showing behaviors not seen with others.',
+        sourceRefs: ['behavioral_studies', 'trainer_accounts'],
+        generatedAt: new Date().toISOString(),
+        qualityScore: { accuracy: 5, interest: 3, clarity: 5 },
+      },
+    ];
+
+    logger.info(`Generated ${tidbits.length} mock tidbits`);
+    return tidbits;
   }
 
   /**

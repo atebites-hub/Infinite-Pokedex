@@ -26,6 +26,7 @@ Manages the sync progress UI widget.
 **Location**: `source/client/js/sync-ui.js`
 
 **Dependencies**:
+
 - `logger.js` - Logging utilities
 - `sync.js` - CDN sync system
 - `offline.js` - Offline manager
@@ -33,44 +34,54 @@ Manages the sync progress UI widget.
 **Key Methods**:
 
 #### `initialize()`
+
 Initializes the sync UI by creating DOM elements and setting up event listeners.
 
 **Preconditions**: DOM is loaded
 **Postconditions**: UI elements are created and event listeners registered
 
 #### `show()`
+
 Shows the sync UI widget.
 
 **Preconditions**: UI is initialized
 **Postconditions**: UI is visible
 
 #### `hide()`
+
 Hides the sync UI widget.
 
 **Preconditions**: UI is initialized
 **Postconditions**: UI is hidden
 
 #### `updateProgress(current, total, percentage)`
+
 Updates the progress display.
 
 **Parameters**:
+
 - `current` (number) - Current progress
 - `total` (number) - Total items
 - `percentage` (number) - Percentage complete
 
 #### `showComplete()`
+
 Shows completion message and auto-hides after 2 seconds.
 
 #### `showError(message)`
+
 Shows an error message.
 
 **Parameters**:
+
 - `message` (string) - Error message
 
 #### `showOfflineMessage()`
+
 Shows offline status message.
 
 #### `reset()`
+
 Resets UI to initial state.
 
 ### SyncNotifications Class
@@ -82,32 +93,40 @@ Manages browser notifications for sync events.
 **Key Methods**:
 
 #### `requestPermission()`
+
 Requests notification permission from the user.
 
 **Returns**: Promise<string> - Permission status
 
 #### `show(title, options)`
+
 Shows a browser notification.
 
 **Parameters**:
+
 - `title` (string) - Notification title
 - `options` (Object) - Notification options
 
 **Returns**: Notification|null - Notification instance
 
 #### `showSyncComplete(count)`
+
 Shows sync complete notification.
 
 **Parameters**:
+
 - `count` (number) - Number of items synced
 
 #### `showSyncError(error)`
+
 Shows sync error notification.
 
 **Parameters**:
+
 - `error` (string) - Error message
 
 #### `showUpdateAvailable()`
+
 Shows update available notification.
 
 ## UI Design
@@ -251,7 +270,7 @@ syncUI.statusText.textContent = 'Custom message';
 Modify gradient colors:
 
 ```javascript
-this.progressBar.style.background = 
+this.progressBar.style.background =
   'linear-gradient(90deg, #custom1 0%, #custom2 100%)';
 ```
 

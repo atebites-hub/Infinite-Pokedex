@@ -22,19 +22,19 @@ graph TD
     B -->|Email| I[validateEmail]
     B -->|Hash| J[validateHash]
     B -->|Version| K[validateVersion]
-    
+
     C --> L[Check Required Fields]
     C --> M[Check Types]
     C --> N[Check Bounds]
     C --> O{Valid?}
     O -->|Yes| P[Return Success]
     O -->|No| Q[Return Errors]
-    
+
     G --> R[Remove HTML Tags]
     R --> S[Preserve Unicode Characters]
     S --> T[Normalize Whitespace]
     T --> U[Return Sanitized Text]
-    
+
     style C fill:#e1f5ff
     style G fill:#ffe1e1
     style O fill:#fff4e1
@@ -49,17 +49,21 @@ graph TD
 Validates data against a schema definition with support for required fields, type checking, and bounds validation.
 
 **Pre Conditions:**
+
 - `data` must be an object
 - `schema` must be an object with field definitions
 
 **Post Conditions:**
+
 - Returns validation result with `valid`, `errors`, and `warnings` properties
 
 **Parameters:**
+
 - `@param {Object} data` - Data to validate
 - `@param {Object} schema` - Schema definition with field rules
 
 **Returns:**
+
 - `@return {Object}` - Validation result with structure:
   ```javascript
   {
@@ -70,6 +74,7 @@ Validates data against a schema definition with support for required fields, typ
   ```
 
 **Schema Field Rules:**
+
 - `required` - Field must be present
 - `type` - Expected data type (string, number, boolean, array, object)
 - `maxLength` - Maximum length for strings/arrays
@@ -77,10 +82,11 @@ Validates data against a schema definition with support for required fields, typ
 - `max` - Maximum value for numbers
 
 **Example:**
+
 ```javascript
 const schema = {
   name: { type: 'string', required: true, maxLength: 50 },
-  age: { type: 'number', required: true, min: 0, max: 100 }
+  age: { type: 'number', required: true, min: 0, max: 100 },
 };
 
 const data = { name: 'Pikachu', age: 25 };
@@ -95,24 +101,30 @@ const result = validateSchema(data, schema);
 Validates Pokémon species data against the expected schema.
 
 **Pre Conditions:**
+
 - `species` must be an object
 
 **Post Conditions:**
+
 - Returns validation result indicating if species data is valid
 
 **Parameters:**
+
 - `@param {Object} species` - Species data object
 
 **Returns:**
+
 - `@return {Object}` - Validation result
 
 **Required Fields:**
+
 - `id` (number, 1-10000)
 - `name` (string, max 50 chars)
 - `types` (array, max 2 elements)
 - `sources` (object)
 
 **Optional Fields:**
+
 - `height_m` (number, 0-20)
 - `weight_kg` (number, 0-10000)
 - `abilities` (array, max 10 elements)
@@ -124,22 +136,28 @@ Validates Pokémon species data against the expected schema.
 Validates tidbit data against the expected schema.
 
 **Pre Conditions:**
+
 - `tidbit` must be an object
 
 **Post Conditions:**
+
 - Returns validation result indicating if tidbit data is valid
 
 **Parameters:**
+
 - `@param {Object} tidbit` - Tidbit data object
 
 **Returns:**
+
 - `@return {Object}` - Validation result
 
 **Required Fields:**
+
 - `title` (string, max 100 chars)
 - `body` (string, max 500 chars)
 
 **Optional Fields:**
+
 - `sourceRefs` (array, max 5 elements)
 - `quality` (object)
 
@@ -148,22 +166,28 @@ Validates tidbit data against the expected schema.
 Validates dataset metadata against the expected schema.
 
 **Pre Conditions:**
+
 - `metadata` must be an object
 
 **Post Conditions:**
+
 - Returns validation result indicating if metadata is valid
 
 **Parameters:**
+
 - `@param {Object} metadata` - Dataset metadata object
 
 **Returns:**
+
 - `@return {Object}` - Validation result
 
 **Required Fields:**
+
 - `totalSpecies` (number, min 0)
 - `contentHash` (string)
 
 **Optional Fields:**
+
 - `totalTidbits` (number, min 0)
 - `sources` (array)
 
@@ -174,52 +198,59 @@ Validates dataset metadata against the expected schema.
 Sanitizes text content by removing HTML tags, preserving Unicode characters, and normalizing whitespace.
 
 **Pre Conditions:**
+
 - `text` can be any type (non-strings return empty string)
 
 **Post Conditions:**
+
 - Returns sanitized text with HTML removed and whitespace normalized
 - Preserves Unicode letters (é, ñ, etc.)
 - Preserves gender symbols (♀, ♂)
 - Preserves common punctuation (apostrophes, parentheses, hyphens, etc.)
 
 **Parameters:**
+
 - `@param {string} text` - Text to sanitize
 
 **Returns:**
+
 - `@return {string}` - Sanitized text
 
 **Preserved Characters:**
+
 - Unicode letters (\p{L}): All languages and accented characters
 - Unicode numbers (\p{N}): All numeric characters
 - Whitespace (\s): Normalized to single spaces
-- Common punctuation: `-.,!?:;()'"` 
+- Common punctuation: `-.,!?:;()'"`
 - Gender symbols: `♀♂`
 
 **Removed Characters:**
+
 - HTML tags: `<tag>content</tag>`
 - Special characters not in allowed list
 - Leading/trailing whitespace
 
 **Example:**
+
 ```javascript
 // Preserves accented characters
-sanitizeText('Flabébé is a fairy type')
+sanitizeText('Flabébé is a fairy type');
 // Returns: 'Flabébé is a fairy type'
 
 // Preserves apostrophes
-sanitizeText("Farfetch'd is a bird")
+sanitizeText("Farfetch'd is a bird");
 // Returns: "Farfetch'd is a bird"
 
 // Preserves gender symbols
-sanitizeText('Nidoran♀ and Nidoran♂')
+sanitizeText('Nidoran♀ and Nidoran♂');
 // Returns: 'Nidoran♀ and Nidoran♂'
 
 // Removes HTML tags
-sanitizeText('Pikachu is <strong>electric</strong> type')
+sanitizeText('Pikachu is <strong>electric</strong> type');
 // Returns: 'Pikachu is electric type'
 
 // Normalizes whitespace
-sanitizeText('Multiple   spaces   here')
+sanitizeText('Multiple   spaces   here');
 // Returns: 'Multiple spaces here'
 ```
 
@@ -230,21 +261,26 @@ sanitizeText('Multiple   spaces   here')
 Validates URL format.
 
 **Pre Conditions:**
+
 - `url` should be a string
 
 **Post Conditions:**
+
 - Returns true if URL is valid
 
 **Parameters:**
+
 - `@param {string} url` - URL to validate
 
 **Returns:**
+
 - `@return {boolean}` - True if valid URL
 
 **Example:**
+
 ```javascript
-validateUrl('https://example.com') // true
-validateUrl('not a url') // false
+validateUrl('https://example.com'); // true
+validateUrl('not a url'); // false
 ```
 
 #### `validateEmail(email)`
@@ -252,15 +288,19 @@ validateUrl('not a url') // false
 Validates email address format.
 
 **Pre Conditions:**
+
 - `email` should be a string
 
 **Post Conditions:**
+
 - Returns true if email format is valid
 
 **Parameters:**
+
 - `@param {string} email` - Email to validate
 
 **Returns:**
+
 - `@return {boolean}` - True if valid email
 
 **Pattern:** `/^[^\s@]+@[^\s@]+\.[^\s@]+$/`
@@ -270,15 +310,19 @@ Validates email address format.
 Validates SHA-256 hash format.
 
 **Pre Conditions:**
+
 - `hash` should be a string
 
 **Post Conditions:**
+
 - Returns true if hash is valid SHA-256 format
 
 **Parameters:**
+
 - `@param {string} hash` - Hash to validate
 
 **Returns:**
+
 - `@return {boolean}` - True if valid hash
 
 **Pattern:** 64 hexadecimal characters (`/^[a-f0-9]{64}$/`)
@@ -288,15 +332,19 @@ Validates SHA-256 hash format.
 Validates version string format.
 
 **Pre Conditions:**
+
 - `version` should be a string
 
 **Post Conditions:**
+
 - Returns true if version format is valid
 
 **Parameters:**
+
 - `@param {string} version` - Version to validate
 
 **Returns:**
+
 - `@return {boolean}` - True if valid version
 
 **Format:** `YYYYMMDD-HHMM` (e.g., `20250108-1430`)
@@ -310,11 +358,13 @@ Validates version string format.
 Comprehensive test coverage is provided in `tests/unit/validation-runner.js`.
 
 **Run Tests:**
+
 ```bash
 node tests/unit/validation-runner.js
 ```
 
 **Test Coverage:**
+
 - ✅ Unicode character preservation (accented characters, gender symbols)
 - ✅ Punctuation preservation (apostrophes, hyphens, parentheses)
 - ✅ HTML tag removal
@@ -352,21 +402,25 @@ const result = sanitizeText('Pikachu is <strong>electric</strong>');
 **Root Cause**: The regex pattern used `\w` which only matches ASCII word characters `[A-Za-z0-9_]`, causing all other characters to be removed.
 
 **Fix**: Updated regex to use Unicode property escapes:
+
 - `\p{L}` - Matches all Unicode letters
 - `\p{N}` - Matches all Unicode numbers
 - Added `u` flag for Unicode support
 
 **Before:**
+
 ```javascript
 .replace(/[^\w\s\-.,!?:;()'"]/g, '')
 ```
 
 **After:**
+
 ```javascript
 .replace(/[^\p{L}\p{N}\s\-.,!?:;()'"♀♂]/gu, '')
 ```
 
-**Impact**: 
+**Impact**:
+
 - ✅ Preserves Pokémon names like Flabébé, Farfetch'd, Nidoran♀/♂
 - ✅ Supports international characters in descriptions
 - ✅ Prevents data corruption during sanitization
@@ -379,7 +433,7 @@ const result = sanitizeText('Pikachu is <strong>electric</strong>');
 import {
   validateSpecies,
   validateTidbit,
-  sanitizeText
+  sanitizeText,
 } from './utils/validation.js';
 
 // 1. Sanitize text content
@@ -391,7 +445,7 @@ const species = {
   id: 25,
   name: name,
   types: ['Electric'],
-  sources: { bulbapedia: 'https://...' }
+  sources: { bulbapedia: 'https://...' },
 };
 
 const speciesValidation = validateSpecies(species);
@@ -403,7 +457,7 @@ if (!speciesValidation.valid) {
 const tidbit = {
   title: sanitizeText(rawTitle),
   body: sanitizeText(rawBody),
-  sourceRefs: ['bulbapedia']
+  sourceRefs: ['bulbapedia'],
 };
 
 const tidbitValidation = validateTidbit(tidbit);

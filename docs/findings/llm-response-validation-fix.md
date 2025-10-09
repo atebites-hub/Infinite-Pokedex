@@ -18,12 +18,14 @@ Four methods in `tidbit-synthesizer.js` were directly accessing `response.data.c
 ### Risk
 
 If the OpenRouter API returned:
+
 - An empty `choices` array
 - A missing `choices` property
 - A missing `message` or `content` property
 - A `null` or `undefined` response data
 
 The application would crash with a runtime error like:
+
 ```
 TypeError: Cannot read property 'message' of undefined
 ```
@@ -60,18 +62,14 @@ if (
   !Array.isArray(response.data.choices) ||
   response.data.choices.length === 0
 ) {
-  throw new Error(
-    'Invalid API response: missing or empty choices array'
-  );
+  throw new Error('Invalid API response: missing or empty choices array');
 }
 
 if (
   !response.data.choices[0].message ||
   !response.data.choices[0].message.content
 ) {
-  throw new Error(
-    'Invalid API response: missing message or content'
-  );
+  throw new Error('Invalid API response: missing message or content');
 }
 
 const content = response.data.choices[0].message.content;
@@ -80,6 +78,7 @@ const content = response.data.choices[0].message.content;
 ### Validation Checks
 
 The fix validates:
+
 1. ✅ `response.data` exists
 2. ✅ `response.data.choices` exists
 3. ✅ `choices` is an array
@@ -122,6 +121,7 @@ Created comprehensive test suite with 25 tests:
 ### Test Scenarios
 
 **Empty Choices Array:**
+
 ```javascript
 {
   status: 200,
@@ -132,6 +132,7 @@ Created comprehensive test suite with 25 tests:
 ```
 
 **Missing Choices Property:**
+
 ```javascript
 {
   status: 200,
@@ -140,6 +141,7 @@ Created comprehensive test suite with 25 tests:
 ```
 
 **Missing Message Content:**
+
 ```javascript
 {
   status: 200,
@@ -154,6 +156,7 @@ Created comprehensive test suite with 25 tests:
 ```
 
 **Null Response Data:**
+
 ```javascript
 {
   status: 200,
@@ -241,6 +244,7 @@ NODE_OPTIONS="--experimental-vm-modules" npx jest tests/unit/tidbit-synthesizer.
 ### Similar Bugs to Check
 
 Review other code that accesses external API responses:
+
 - ✅ `tidbit-synthesizer.js` - Fixed
 - [ ] Other OpenRouter integrations
 - [ ] Third-party API integrations
@@ -249,6 +253,7 @@ Review other code that accesses external API responses:
 ### Code Review Checklist
 
 When reviewing external API integration code:
+
 - [ ] Does it validate response structure?
 - [ ] Does it handle null/undefined gracefully?
 - [ ] Does it check array lengths before access?

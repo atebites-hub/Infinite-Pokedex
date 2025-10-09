@@ -1,7 +1,7 @@
 /**
  * Offline Fallback and Error Handling Module
  * Handles offline detection, fallback content, and error recovery
- * 
+ *
  * @module offline
  */
 
@@ -21,7 +21,7 @@ export class OfflineManager {
 
   /**
    * Set up online/offline event listeners
-   * 
+   *
    * Pre: None
    * Post: Event listeners are registered
    * @return {void}
@@ -33,7 +33,7 @@ export class OfflineManager {
 
   /**
    * Handle online event
-   * 
+   *
    * Pre: Browser detected online connection
    * Post: Online state updated, retry queue processed
    * @return {void}
@@ -47,7 +47,7 @@ export class OfflineManager {
 
   /**
    * Handle offline event
-   * 
+   *
    * Pre: Browser detected offline connection
    * Post: Offline state updated, listeners notified
    * @return {void}
@@ -60,7 +60,7 @@ export class OfflineManager {
 
   /**
    * Check if currently online
-   * 
+   *
    * Pre: None
    * Post: Returns current online status
    * @return {boolean} True if online
@@ -71,7 +71,7 @@ export class OfflineManager {
 
   /**
    * Register a listener for online/offline changes
-   * 
+   *
    * Pre: callback is a function
    * Post: Callback added to listeners
    * @param {Function} callback - Callback function (isOnline) => void
@@ -85,26 +85,26 @@ export class OfflineManager {
 
   /**
    * Remove a listener
-   * 
+   *
    * Pre: callback is a registered function
    * Post: Callback removed from listeners
    * @param {Function} callback - Callback function to remove
    * @return {void}
    */
   removeListener(callback) {
-    this.listeners = this.listeners.filter(cb => cb !== callback);
+    this.listeners = this.listeners.filter((cb) => cb !== callback);
   }
 
   /**
    * Notify all listeners of status change
-   * 
+   *
    * Pre: None
    * Post: All listeners invoked with new status
    * @param {boolean} isOnline - Current online status
    * @return {void}
    */
   notifyListeners(isOnline) {
-    this.listeners.forEach(callback => {
+    this.listeners.forEach((callback) => {
       try {
         callback(isOnline);
       } catch (error) {
@@ -115,7 +115,7 @@ export class OfflineManager {
 
   /**
    * Add a failed request to retry queue
-   * 
+   *
    * Pre: request is a valid Request or function
    * Post: Request added to retry queue
    * @param {Request|Function} request - Request to retry
@@ -129,7 +129,7 @@ export class OfflineManager {
       timestamp: Date.now(),
       attempts: 0,
     });
-    
+
     logger.info('Offline Manager: Added to retry queue', {
       queueSize: this.retryQueue.length,
     });
@@ -137,7 +137,7 @@ export class OfflineManager {
 
   /**
    * Process retry queue when back online
-   * 
+   *
    * Pre: Connection is online
    * Post: All queued requests are retried
    * @return {Promise<void>}
@@ -161,11 +161,11 @@ export class OfflineManager {
         } else {
           await fetch(item.request);
         }
-        
+
         logger.info('Offline Manager: Retry successful');
       } catch (error) {
         logger.error('Offline Manager: Retry failed', error);
-        
+
         // Re-add to queue if max attempts not reached
         const maxAttempts = item.options.maxAttempts || 3;
         if (item.attempts < maxAttempts) {
@@ -178,7 +178,7 @@ export class OfflineManager {
 
   /**
    * Handle fetch with offline fallback
-   * 
+   *
    * Pre: request is a valid Request object
    * Post: Returns Response from network or cache
    * @param {Request} request - The request to handle
@@ -190,7 +190,7 @@ export class OfflineManager {
       return response;
     } catch (error) {
       logger.warn('Offline Manager: Fetch failed, trying cache', error);
-      
+
       // Try cache
       const cachedResponse = await caches.match(request);
       if (cachedResponse) {
@@ -204,7 +204,7 @@ export class OfflineManager {
 
   /**
    * Get offline fallback response
-   * 
+   *
    * Pre: request is a valid Request object
    * Post: Returns fallback Response
    * @param {Request} request - The failed request
@@ -251,7 +251,7 @@ export class OfflineManager {
 
   /**
    * Check if request is for an image
-   * 
+   *
    * Pre: url is a valid URL object
    * Post: Returns boolean indicating if image request
    * @param {URL} url - The URL to check
@@ -259,12 +259,12 @@ export class OfflineManager {
    */
   isImageRequest(url) {
     const imageExtensions = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg'];
-    return imageExtensions.some(ext => url.pathname.endsWith(ext));
+    return imageExtensions.some((ext) => url.pathname.endsWith(ext));
   }
 
   /**
    * Get placeholder image response
-   * 
+   *
    * Pre: None
    * Post: Returns Response with placeholder SVG
    * @return {Response} Placeholder image response
@@ -287,7 +287,7 @@ export class OfflineManager {
 
   /**
    * Clear retry queue
-   * 
+   *
    * Pre: None
    * Post: Retry queue is empty
    * @return {void}
@@ -299,7 +299,7 @@ export class OfflineManager {
 
   /**
    * Get retry queue size
-   * 
+   *
    * Pre: None
    * Post: Returns number of items in retry queue
    * @return {number} Queue size
@@ -321,7 +321,7 @@ export class ErrorHandler {
 
   /**
    * Set up global error handlers
-   * 
+   *
    * Pre: None
    * Post: Global error handlers registered
    * @return {void}
@@ -346,7 +346,7 @@ export class ErrorHandler {
 
   /**
    * Handle an error
-   * 
+   *
    * Pre: error is an Error object or string
    * Post: Error is logged and stored
    * @param {Error|string} error - The error to handle
@@ -376,7 +376,7 @@ export class ErrorHandler {
 
   /**
    * Store error in IndexedDB
-   * 
+   *
    * Pre: errorEntry is a valid error object
    * Post: Error stored in database
    * @param {Object} errorEntry - Error entry to store
@@ -425,7 +425,7 @@ export class ErrorHandler {
 
   /**
    * Get error log
-   * 
+   *
    * Pre: None
    * Post: Returns array of error entries
    * @return {Array} Error log
@@ -436,7 +436,7 @@ export class ErrorHandler {
 
   /**
    * Clear error log
-   * 
+   *
    * Pre: None
    * Post: Error log is empty
    * @return {void}
@@ -448,7 +448,7 @@ export class ErrorHandler {
 
   /**
    * Get errors from IndexedDB
-   * 
+   *
    * Pre: IndexedDB is available
    * Post: Returns array of stored errors
    * @return {Promise<Array>} Stored errors
@@ -463,7 +463,7 @@ export class ErrorHandler {
         const request = store.get('error_log');
         request.onsuccess = () => resolve(request.result);
         request.onerror = () => reject(request.error);
-        
+
         // Wait for transaction to complete
         tx.oncomplete = () => {};
         tx.onerror = () => reject(tx.error);
@@ -478,7 +478,7 @@ export class ErrorHandler {
 
   /**
    * Clear stored errors from IndexedDB
-   * 
+   *
    * Pre: IndexedDB is available
    * Post: Stored errors are cleared
    * @return {Promise<void>}

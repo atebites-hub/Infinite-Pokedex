@@ -657,3 +657,167 @@
     opacity: 1;
   }
 }
+
+/* Generation Progress Components */
+.generating-lore {
+  position: relative;
+}
+
+.generation-progress-container {
+  margin: var(--space-md) 0;
+  padding: var(--space-md);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.generation-progress-bar {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: var(--space-sm);
+}
+
+.generation-progress-fill {
+  height: 100%;
+  background: var(--gradient-rotom);
+  border-radius: 4px;
+  width: 0%;
+  transition: width 0.3s ease;
+  position: relative;
+}
+
+.generation-progress-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.4) 50%,
+    transparent 100%
+  );
+  animation: shimmer 2s infinite;
+}
+
+.generation-status {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  text-align: center;
+  font-weight: 500;
+}
+
+.generating-lore .generation-status {
+  color: var(--rotom-cyan);
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Lore Panel Artwork */
+.panel-artwork {
+  margin-bottom: var(--space-md);
+  text-align: center;
+}
+
+.panel-artwork img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.panel-artwork img:hover {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-lg);
+}
+
+.lore-panel {
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  padding: var(--space-lg);
+  margin-bottom: var(--space-md);
+  box-shadow: var(--shadow-md);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+  position: relative;
+}
+
+.lore-panel:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.lore-panel h4 {
+  color: var(--rotom-cyan);
+  margin: var(--space-md) 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.lore-panel p {
+  color: var(--text-primary);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.generating-lore .lore-panel,
+.generating-artwork .lore-panel {
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+/* Lore History */
+.lore-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.lore-history-item {
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.lore-history-item h5 {
+  color: var(--rotom-cyan);
+  margin: 0 0 var(--space-xs) 0;
+  font-size: 1rem;
+}
+
+.lore-history-item small {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  display: block;
+  margin-bottom: var(--space-sm);
+}
+
+.lore-history-item p {
+  color: var(--text-primary);
+  margin: 0 0 var(--space-sm) 0;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.btn-sm {
+  padding: var(--space-xs) var(--space-sm);
+  font-size: 0.8rem;
+}

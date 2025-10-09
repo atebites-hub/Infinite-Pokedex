@@ -1,6 +1,6 @@
 /**
  * Client-side Logger
- * 
+ *
  * Simple logging utility for client-side debugging
  */
 
@@ -41,5 +41,5 @@ export const logger = {
     if (currentLevel <= LOG_LEVELS.ERROR) {
       console.error(formatLog('ERROR', message, meta));
     }
-  }
+  },
 };

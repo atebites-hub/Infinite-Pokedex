@@ -1,7 +1,7 @@
 /**
  * Version Management and Data Integrity Module
  * Handles dataset versioning, integrity checks, and migration
- * 
+ *
  * @module version
  */
 
@@ -20,7 +20,7 @@ export class VersionManager {
 
   /**
    * Initialize version manager and load current version
-   * 
+   *
    * Pre: IndexedDB is available
    * Post: Current version is loaded from storage
    * @return {Promise<void>}
@@ -30,12 +30,12 @@ export class VersionManager {
       const db = await openDB();
       const tx = db.transaction('metadata', 'readonly');
       const store = tx.objectStore('metadata');
-      
+
       const versionData = await new Promise((resolve, reject) => {
         const request = store.get('current_version');
         request.onsuccess = () => resolve(request.result);
         request.onerror = () => reject(request.error);
-        
+
         // Wait for transaction to complete
         tx.oncomplete = () => {};
         tx.onerror = () => reject(tx.error);
@@ -55,7 +55,7 @@ export class VersionManager {
 
   /**
    * Get the current dataset version
-   * 
+   *
    * Pre: Version manager is initialized
    * Post: Returns current version string or null
    * @return {string|null} Current version
@@ -66,7 +66,7 @@ export class VersionManager {
 
   /**
    * Check if a new version is available
-   * 
+   *
    * Pre: manifestUrl is a valid CDN manifest URL
    * Post: Returns boolean indicating if update is available
    * @param {string} manifestUrl - URL to the manifest file
@@ -94,8 +94,9 @@ export class VersionManager {
         throw new Error('Manifest missing version field');
       }
 
-      const hasUpdate = !this.currentVersion || 
-                       this.compareVersions(manifest.version, this.currentVersion) > 0;
+      const hasUpdate =
+        !this.currentVersion ||
+        this.compareVersions(manifest.version, this.currentVersion) > 0;
 
       logger.info('Version Manager: Update check complete', {
         current: this.currentVersion,
@@ -112,7 +113,7 @@ export class VersionManager {
 
   /**
    * Compare two semantic version strings
-   * 
+   *
    * Pre: v1 and v2 are valid semantic version strings (e.g., "1.2.3")
    * Post: Returns -1, 0, or 1 for comparison result
    * @param {string} v1 - First version
@@ -136,7 +137,7 @@ export class VersionManager {
 
   /**
    * Verify data integrity using checksums
-   * 
+   *
    * Pre: data is a valid object, expectedHash is a SHA-256 hash string
    * Post: Returns boolean indicating if data matches hash
    * @param {Object} data - Data to verify
@@ -148,10 +149,12 @@ export class VersionManager {
       const dataString = JSON.stringify(data);
       const encoder = new TextEncoder();
       const dataBuffer = encoder.encode(dataString);
-      
+
       const hashBuffer = await crypto.subtle.digest('SHA-256', dataBuffer);
       const hashArray = Array.from(new Uint8Array(hashBuffer));
-      const computedHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      const computedHash = hashArray
+        .map((b) => b.toString(16).padStart(2, '0'))
+        .join('');
 
       const isValid = computedHash === expectedHash;
 
@@ -171,7 +174,7 @@ export class VersionManager {
 
   /**
    * Update to a new version
-   * 
+   *
    * Pre: newVersion is a valid version string
    * Post: Current version is updated in storage
    * @param {string} newVersion - New version to set
@@ -207,7 +210,7 @@ export class VersionManager {
 
   /**
    * Get cached manifest data
-   * 
+   *
    * Pre: checkForUpdates has been called
    * Post: Returns cached manifest or null
    * @return {Object|null} Cached manifest
@@ -218,7 +221,7 @@ export class VersionManager {
 
   /**
    * Validate manifest structure
-   * 
+   *
    * Pre: manifest is an object
    * Post: Returns boolean indicating if manifest is valid
    * @param {Object} manifest - Manifest to validate
@@ -226,10 +229,12 @@ export class VersionManager {
    */
   validateManifest(manifest) {
     const requiredFields = ['version', 'timestamp', 'files', 'totalSize'];
-    
+
     for (const field of requiredFields) {
       if (!(field in manifest)) {
-        logger.error(`Version Manager: Manifest missing required field: ${field}`);
+        logger.error(
+          `Version Manager: Manifest missing required field: ${field}`
+        );
         return false;
       }
     }
@@ -251,7 +256,7 @@ export class VersionManager {
 
   /**
    * Perform data migration if needed
-   * 
+   *
    * Pre: fromVersion and toVersion are valid version strings
    * Post: Data is migrated to new version format
    * @param {string} fromVersion - Version to migrate from
@@ -288,7 +293,7 @@ export class VersionManager {
 
   /**
    * Example migration function (1.0.0 to 1.1.0)
-   * 
+   *
    * Pre: Database is at version 1.0.0
    * Post: Database is migrated to version 1.1.0 format
    * @return {Promise<void>}
@@ -301,7 +306,7 @@ export class VersionManager {
 
   /**
    * Example migration function (1.1.0 to 2.0.0)
-   * 
+   *
    * Pre: Database is at version 1.1.0
    * Post: Database is migrated to version 2.0.0 format
    * @return {Promise<void>}
@@ -314,7 +319,7 @@ export class VersionManager {
 
   /**
    * Clear all version data and reset
-   * 
+   *
    * Pre: None
    * Post: All version data is cleared from storage
    * @return {Promise<void>}
@@ -348,7 +353,7 @@ export class VersionManager {
 
   /**
    * Get version history from storage
-   * 
+   *
    * Pre: IndexedDB is available
    * Post: Returns array of version history entries
    * @return {Promise<Array>} Version history
@@ -363,7 +368,7 @@ export class VersionManager {
         const request = store.get('version_history');
         request.onsuccess = () => resolve(request.result);
         request.onerror = () => reject(request.error);
-        
+
         // Wait for transaction to complete
         tx.oncomplete = () => {};
         tx.onerror = () => reject(tx.error);
@@ -378,7 +383,7 @@ export class VersionManager {
 
   /**
    * Add entry to version history
-   * 
+   *
    * Pre: version is a valid version string
    * Post: Version is added to history in storage
    * @param {string} version - Version to add to history
@@ -388,7 +393,7 @@ export class VersionManager {
   async addToHistory(version, metadata = {}) {
     try {
       const history = await this.getVersionHistory();
-      
+
       history.push({
         version,
         timestamp: Date.now(),

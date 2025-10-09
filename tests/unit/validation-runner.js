@@ -36,7 +36,7 @@ runTest('Preserves accented characters (Flabébé)', () => {
 });
 
 // Test 2: Preserve apostrophes in Pokémon names
-runTest('Preserves apostrophes (Farfetch\'d)', () => {
+runTest("Preserves apostrophes (Farfetch'd)", () => {
   const input = "Farfetch'd is a bird Pokémon";
   const result = sanitizeText(input);
   return result === "Farfetch'd is a bird Pokémon";
@@ -93,16 +93,16 @@ runTest('Trims whitespace', () => {
 
 // Test 10: Handle mixed Unicode and ASCII
 runTest('Handles mixed Unicode and ASCII', () => {
-  const input = 'Pokémon like Flabébé and Farfetch\'d';
+  const input = "Pokémon like Flabébé and Farfetch'd";
   const result = sanitizeText(input);
-  return result === 'Pokémon like Flabébé and Farfetch\'d';
+  return result === "Pokémon like Flabébé and Farfetch'd";
 });
 
 // Test 11: Preserve common punctuation
 runTest('Preserves common punctuation', () => {
-  const input = 'Hello! How are you? I\'m fine, thanks.';
+  const input = "Hello! How are you? I'm fine, thanks.";
   const result = sanitizeText(input);
-  return result === 'Hello! How are you? I\'m fine, thanks.';
+  return result === "Hello! How are you? I'm fine, thanks.";
 });
 
 // Test 12: Handle empty string
@@ -132,14 +132,21 @@ runTest('Removes dangerous characters but preserves name', () => {
   const input = 'Pikachu$%^&*+=[]{}\\|;:`~';
   const result = sanitizeText(input);
   // Should preserve the name but remove most special chars except allowed punctuation
-  return result.includes('Pikachu') && !result.includes('$') && !result.includes('%');
+  return (
+    result.includes('Pikachu') && !result.includes('$') && !result.includes('%')
+  );
 });
 
 // Test 15: Complex real-world example with multiple Unicode characters
 runTest('Complex example: Multiple accented names', () => {
-  const input = 'Pokémon like Flabébé, Farfetch\'d, and Nidoran♀ have special characters';
+  const input =
+    "Pokémon like Flabébé, Farfetch'd, and Nidoran♀ have special characters";
   const result = sanitizeText(input);
-  return result.includes('Flabébé') && result.includes('Farfetch\'d') && result.includes('Nidoran♀');
+  return (
+    result.includes('Flabébé') &&
+    result.includes("Farfetch'd") &&
+    result.includes('Nidoran♀')
+  );
 });
 
 // Test 16: Test with Japanese characters (some Pokémon names)
@@ -156,9 +163,13 @@ console.log('━━━━━━━━━━━━━━━━━━━━━━�
 
 // Exit with appropriate code
 if (testsPassed === testsTotal) {
-  console.log('✅ All sanitizeText tests passed! Unicode preservation is working correctly.\n');
+  console.log(
+    '✅ All sanitizeText tests passed! Unicode preservation is working correctly.\n'
+  );
   process.exit(0);
 } else {
-  console.log(`❌ ${testsTotal - testsPassed} test(s) failed. Please review the failures above.\n`);
+  console.log(
+    `❌ ${testsTotal - testsPassed} test(s) failed. Please review the failures above.\n`
+  );
   process.exit(1);
 }

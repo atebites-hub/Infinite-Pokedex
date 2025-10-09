@@ -4,6 +4,7 @@
 import { PokedexApp } from './pokedex.js';
 import { StorageManager } from './storage.js';
 import { AnimationManager } from './animations.js';
+import { cdnSync } from './sync.js';
 
 class App {
   constructor() {
@@ -182,6 +183,9 @@ class App {
         console.log('No cached data found, loading from CDN...');
         await this.loadFromCDN();
       }
+
+      await cdnSync.initialize();
+      await cdnSync.syncAll();
     } catch (error) {
       console.error('Failed to load initial data:', error);
       this.showError(
@@ -454,6 +458,12 @@ class App {
 // Initialize app when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
   window.app = new App();
+  // Expose PokedexApp instance globally for history buttons
+  setTimeout(() => {
+    if (window.app && window.app.pokedex) {
+      window.pokedexApp = window.app.pokedex;
+    }
+  }, 100);
 });
 
 // Export for testing

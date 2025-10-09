@@ -45,6 +45,7 @@ Tests the schema validation and text sanitization functions.
 #### Test Coverage
 
 **sanitizeText() Function:**
+
 - ✅ Preserves accented characters (Flabébé)
 - ✅ Preserves apostrophes (Farfetch'd)
 - ✅ Preserves gender symbols (Nidoran♀/♂)
@@ -63,11 +64,13 @@ Tests the schema validation and text sanitization functions.
 - ✅ Preserves Japanese characters
 
 **Run Command:**
+
 ```bash
 node tests/unit/validation-runner.js
 ```
 
 **Expected Output:**
+
 ```
 🧪 Testing sanitizeText Unicode Character Preservation...
 
@@ -112,6 +115,7 @@ Tests the TidbitSynthesizer cache key generation fix.
 - ✅ Special characters in species ID
 
 **Run Command:**
+
 ```bash
 ./scripts/test-cache-key.sh
 # or
@@ -162,6 +166,7 @@ Tests the TidbitSynthesizer class with comprehensive coverage of LLM response ha
 **Module Under Test**: `source/server/processors/tidbit-synthesizer.js`
 
 **Running Tests:**
+
 ```bash
 npm test -- tests/unit/tidbit-synthesizer.test.js
 ```
@@ -171,6 +176,7 @@ npm test -- tests/unit/tidbit-synthesizer.test.js
 #### Test Coverage (25 tests total, all passing)
 
 **getCacheKey() Method:**
+
 - ✅ Generates different cache keys for different forum data
 - ✅ Generates same cache key for identical inputs
 - ✅ Uses full SHA-256 hash (64 characters)
@@ -178,12 +184,15 @@ npm test -- tests/unit/tidbit-synthesizer.test.js
 - ✅ Handles undefined forum data gracefully
 
 **getStats() Method:**
+
 - ✅ Returns synthesizer statistics with correct structure
 
 **clearCache() Method:**
+
 - ✅ Properly clears the cache
 
 **extractResponseContent() Method (NEW):**
+
 - ✅ Extracts content from valid API response
 - ✅ Throws error when response is null
 - ✅ Throws error when response.data is missing
@@ -196,16 +205,19 @@ npm test -- tests/unit/tidbit-synthesizer.test.js
 - ✅ Includes context in error messages for debugging
 
 **generateTidbits() Response Validation:**
+
 - ✅ Handles empty choices array gracefully (falls back to empty array)
 - ✅ Handles missing choices property gracefully
 - ✅ Handles missing message content gracefully
 - ✅ Handles null response data gracefully
 
 **checkSafety() Response Validation:**
+
 - ✅ Returns safe default when response is invalid
 - ✅ Handles missing message content in safety check
 
 **checkQuality() Response Validation:**
+
 - ✅ Returns default quality when response is invalid
 - ✅ Handles null data in quality check
 
@@ -214,6 +226,7 @@ npm test -- tests/unit/tidbit-synthesizer.test.js
 The test suite verifies the fix for a critical bug where LLM response parsing methods (`generateTidbits`, `generateTidbitsFallback`, `checkSafety`, `checkQuality`) directly accessed `response.data.choices[0].message.content` without validation. This could cause runtime errors if the API returned unexpected response structures.
 
 **Solution**: Created a reusable `extractResponseContent()` helper method that:
+
 1. Validates response structure at each level
 2. Provides descriptive error messages with context
 3. Ensures consistent error handling across all LLM calls
@@ -341,6 +354,7 @@ The project uses ES modules (`type: "module"` in package.json), but Jest has dif
 ### Affected Test Files
 
 These files require Jest ES module configuration to run:
+
 - `tests/unit/smogon-crawler.test.js`
 - `tests/unit/rate-limiter-fix.test.js`
 - `tests/unit/tidbit-synthesizer.test.js`
@@ -358,6 +372,7 @@ The main test suite script (`scripts/test-suite.sh`) runs all tests:
 ```
 
 **Includes:**
+
 1. Linting
 2. Format checking
 3. Unit tests (npm test)
@@ -367,6 +382,7 @@ The main test suite script (`scripts/test-suite.sh`) runs all tests:
 ### Pre-Commit Checks
 
 Before committing, ensure:
+
 1. All tests pass: `npm test`
 2. No linter errors: `npm run lint`
 3. Code is formatted: `npm run format`
@@ -385,6 +401,7 @@ Before committing, ensure:
 Added comprehensive validation test suite (`validation-runner.js`) to verify Unicode character preservation fix in `sanitizeText()` function. All 18 tests passing.
 
 **Key Tests Added:**
+
 - Unicode character preservation (Flabébé, ポケモン)
 - Gender symbol preservation (Nidoran♀/♂)
 - Punctuation preservation (apostrophes, hyphens, etc.)
@@ -396,10 +413,12 @@ Added comprehensive validation test suite (`validation-runner.js`) to verify Uni
 Added comprehensive response validation tests for TidbitSynthesizer to verify proper error handling when OpenRouter API returns malformed or empty responses. All 25 tests passing.
 
 **Bug Fixed:**
+
 - Multiple methods (`generateTidbits`, `generateTidbitsFallback`, `checkSafety`, `checkQuality`) were directly accessing `response.data.choices[0].message.content` without validation
 - Added defensive checks before accessing nested properties to prevent runtime errors
 
 **Key Tests Added:**
+
 - Empty choices array handling
 - Missing choices property handling
 - Missing message content handling
@@ -408,11 +427,13 @@ Added comprehensive response validation tests for TidbitSynthesizer to verify pr
 - Graceful fallback behavior verification
 
 **Run Command:**
+
 ```bash
 NODE_OPTIONS="--experimental-vm-modules" npx jest tests/unit/tidbit-synthesizer.test.js
 ```
 
 **Test Coverage:**
+
 - 25 tests total across cache key generation, stats, and response validation
 - All methods properly handle malformed API responses
 - Default fallback values ensure system continues operating even with API errors
@@ -428,26 +449,31 @@ NODE_OPTIONS="--experimental-vm-modules" npx jest tests/unit/tidbit-synthesizer.
 **Key Test Cases:**
 
 ### 1. Malformed Line Handling
+
 - **Skip lines without colons**: Verifies lines missing colons are silently skipped
 - **Skip lines with empty directives**: Validates empty directive lines (e.g., `: value`) are ignored
 - **Debug logging**: Ensures malformed lines trigger appropriate debug log messages
 
 ### 2. Edge Cases
+
 - **Multiple colons in values**: Tests that paths like `/path:with:colons` preserve all colons correctly
 - **Empty values**: Validates handling of directive lines with no value (e.g., `User-agent:`)
 - **Comments and empty lines**: Verifies # comments and blank lines are properly skipped
 
 ### 3. Valid Rule Parsing
+
 - **User-agent parsing**: Tests user-agent directive extraction and lowercase normalization
 - **Disallow rules**: Validates proper creation of disallow rules with correct path values
 - **Allow rules**: Tests proper creation of allow rules with correct path values
 
 **Run Command:**
+
 ```bash
 NODE_OPTIONS="--experimental-vm-modules" npx jest tests/unit/robots-parser.test.js
 ```
 
 **Test Coverage:**
+
 - 5 tests covering all edge cases in robots.txt parsing
 - Validates proper handling of malformed lines without crashes
 - Ensures correct rule extraction from well-formed robots.txt files

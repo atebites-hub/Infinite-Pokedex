@@ -29,7 +29,8 @@ Allow: /public
       `.trim();
 
       // Access the internal RobotsParser class through crawler
-      const parser = new (Object.getPrototypeOf(crawler).constructor.RobotsParser || 
+      const parser = new (Object.getPrototypeOf(crawler).constructor
+        .RobotsParser ||
         class RobotsParser {
           constructor(robotsText) {
             this.rules = this.parseRobotsTxt(robotsText);
@@ -47,7 +48,10 @@ Allow: /public
               const colonIndex = trimmed.indexOf(':');
               if (colonIndex === -1) continue; // Should skip this line
 
-              const directive = trimmed.substring(0, colonIndex).trim().toLowerCase();
+              const directive = trimmed
+                .substring(0, colonIndex)
+                .trim()
+                .toLowerCase();
               const value = trimmed.substring(colonIndex + 1).trim();
 
               if (!directive) continue;
@@ -55,15 +59,22 @@ Allow: /public
               if (directive === 'user-agent') {
                 currentUserAgent = value.toLowerCase();
               } else if (directive === 'disallow' && currentUserAgent) {
-                rules.push({ userAgent: currentUserAgent, path: value, allow: false });
+                rules.push({
+                  userAgent: currentUserAgent,
+                  path: value,
+                  allow: false,
+                });
               } else if (directive === 'allow' && currentUserAgent) {
-                rules.push({ userAgent: currentUserAgent, path: value, allow: true });
+                rules.push({
+                  userAgent: currentUserAgent,
+                  path: value,
+                  allow: true,
+                });
               }
             }
             return rules;
           }
-        }
-      )(robotsText);
+        })(robotsText);
 
       // Should only parse the User-agent line (with colon) and skip malformed lines
       expect(parser.rules.length).toBeLessThan(3); // Not all 3 lines were parsed
@@ -92,7 +103,10 @@ Disallow: /admin
             const colonIndex = trimmed.indexOf(':');
             if (colonIndex === -1) continue;
 
-            const directive = trimmed.substring(0, colonIndex).trim().toLowerCase();
+            const directive = trimmed
+              .substring(0, colonIndex)
+              .trim()
+              .toLowerCase();
             const value = trimmed.substring(colonIndex + 1).trim();
 
             if (!directive) continue; // Should skip empty directive
@@ -100,9 +114,17 @@ Disallow: /admin
             if (directive === 'user-agent') {
               currentUserAgent = value.toLowerCase();
             } else if (directive === 'disallow' && currentUserAgent) {
-              rules.push({ userAgent: currentUserAgent, path: value, allow: false });
+              rules.push({
+                userAgent: currentUserAgent,
+                path: value,
+                allow: false,
+              });
             } else if (directive === 'allow' && currentUserAgent) {
-              rules.push({ userAgent: currentUserAgent, path: value, allow: true });
+              rules.push({
+                userAgent: currentUserAgent,
+                path: value,
+                allow: true,
+              });
             }
           }
           return rules;
@@ -136,7 +158,10 @@ Disallow: /path:with:colons
             const colonIndex = trimmed.indexOf(':');
             if (colonIndex === -1) continue;
 
-            const directive = trimmed.substring(0, colonIndex).trim().toLowerCase();
+            const directive = trimmed
+              .substring(0, colonIndex)
+              .trim()
+              .toLowerCase();
             const value = trimmed.substring(colonIndex + 1).trim();
 
             if (!directive) continue;
@@ -144,9 +169,17 @@ Disallow: /path:with:colons
             if (directive === 'user-agent') {
               currentUserAgent = value.toLowerCase();
             } else if (directive === 'disallow' && currentUserAgent) {
-              rules.push({ userAgent: currentUserAgent, path: value, allow: false });
+              rules.push({
+                userAgent: currentUserAgent,
+                path: value,
+                allow: false,
+              });
             } else if (directive === 'allow' && currentUserAgent) {
-              rules.push({ userAgent: currentUserAgent, path: value, allow: true });
+              rules.push({
+                userAgent: currentUserAgent,
+                path: value,
+                allow: true,
+              });
             }
           }
           return rules;
@@ -180,7 +213,10 @@ Disallow: /admin
             const colonIndex = trimmed.indexOf(':');
             if (colonIndex === -1) continue;
 
-            const directive = trimmed.substring(0, colonIndex).trim().toLowerCase();
+            const directive = trimmed
+              .substring(0, colonIndex)
+              .trim()
+              .toLowerCase();
             const value = trimmed.substring(colonIndex + 1).trim();
 
             if (!directive) continue;
@@ -188,9 +224,17 @@ Disallow: /admin
             if (directive === 'user-agent') {
               currentUserAgent = value.toLowerCase();
             } else if (directive === 'disallow' && currentUserAgent) {
-              rules.push({ userAgent: currentUserAgent, path: value, allow: false });
+              rules.push({
+                userAgent: currentUserAgent,
+                path: value,
+                allow: false,
+              });
             } else if (directive === 'allow' && currentUserAgent) {
-              rules.push({ userAgent: currentUserAgent, path: value, allow: true });
+              rules.push({
+                userAgent: currentUserAgent,
+                path: value,
+                allow: true,
+              });
             }
           }
           return rules;
@@ -228,7 +272,10 @@ Allow: /public
             const colonIndex = trimmed.indexOf(':');
             if (colonIndex === -1) continue;
 
-            const directive = trimmed.substring(0, colonIndex).trim().toLowerCase();
+            const directive = trimmed
+              .substring(0, colonIndex)
+              .trim()
+              .toLowerCase();
             const value = trimmed.substring(colonIndex + 1).trim();
 
             if (!directive) continue;
@@ -236,9 +283,17 @@ Allow: /public
             if (directive === 'user-agent') {
               currentUserAgent = value.toLowerCase();
             } else if (directive === 'disallow' && currentUserAgent) {
-              rules.push({ userAgent: currentUserAgent, path: value, allow: false });
+              rules.push({
+                userAgent: currentUserAgent,
+                path: value,
+                allow: false,
+              });
             } else if (directive === 'allow' && currentUserAgent) {
-              rules.push({ userAgent: currentUserAgent, path: value, allow: true });
+              rules.push({
+                userAgent: currentUserAgent,
+                path: value,
+                allow: true,
+              });
             }
           }
           return rules;

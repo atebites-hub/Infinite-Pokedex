@@ -110,7 +110,7 @@ self.addEventListener('fetch', (event) => {
 /**
  * Cache-first strategy: Check cache, fallback to network
  * Best for static assets and CDN content
- * 
+ *
  * Pre: request is a valid Request object, cacheName is a string
  * Post: Returns Response from cache or network
  * @param {Request} request - The request to handle
@@ -126,7 +126,7 @@ async function cacheFirst(request, cacheName) {
     }
 
     const networkResponse = await fetch(request);
-    
+
     // Cache successful responses
     if (networkResponse && networkResponse.status === 200) {
       const cache = await caches.open(cacheName);
@@ -137,7 +137,7 @@ async function cacheFirst(request, cacheName) {
     return networkResponse;
   } catch (error) {
     console.error('Service Worker: Cache-first failed', error);
-    
+
     // Try to return cached version as last resort
     const cachedResponse = await caches.match(request);
     if (cachedResponse) {
@@ -156,7 +156,7 @@ async function cacheFirst(request, cacheName) {
 /**
  * Network-first strategy: Try network, fallback to cache
  * Best for dynamic content that should be fresh
- * 
+ *
  * Pre: request is a valid Request object, cacheName is a string
  * Post: Returns Response from network or cache
  * @param {Request} request - The request to handle
@@ -166,7 +166,7 @@ async function cacheFirst(request, cacheName) {
 async function networkFirst(request, cacheName) {
   try {
     const networkResponse = await fetch(request);
-    
+
     // Cache successful responses
     if (networkResponse && networkResponse.status === 200) {
       const cache = await caches.open(cacheName);
@@ -177,10 +177,13 @@ async function networkFirst(request, cacheName) {
     return networkResponse;
   } catch (error) {
     console.error('Service Worker: Network-first failed, trying cache', error);
-    
+
     const cachedResponse = await caches.match(request);
     if (cachedResponse) {
-      console.log(`Service Worker: Serving stale from ${cacheName}`, request.url);
+      console.log(
+        `Service Worker: Serving stale from ${cacheName}`,
+        request.url
+      );
       return cachedResponse;
     }
 
@@ -254,19 +257,21 @@ self.addEventListener('notificationclick', (event) => {
 
 /**
  * Helper function to check if URL is a static asset
- * 
+ *
  * Pre: url is a valid URL object
  * Post: Returns boolean indicating if URL is a static asset
  * @param {URL} url - The URL to check
  * @return {boolean} True if static asset
  */
 function isStaticAsset(url) {
-  return STATIC_ASSETS.some(asset => url.pathname === asset || url.pathname.startsWith(asset));
+  return STATIC_ASSETS.some(
+    (asset) => url.pathname === asset || url.pathname.startsWith(asset)
+  );
 }
 
 /**
  * Helper function to check if URL is a CDN request
- * 
+ *
  * Pre: url is a valid URL object
  * Post: Returns boolean indicating if URL is a CDN request
  * @param {URL} url - The URL to check
@@ -279,15 +284,17 @@ function isCDNRequest(url) {
     'd1234567890.cloudfront.net',
     'pokedex-data.vercel-storage.com',
   ];
-  
-  return cdnDomains.some(domain => url.hostname.includes(domain)) ||
-         url.pathname.includes('/data/') ||
-         url.pathname.endsWith('.json');
+
+  return (
+    cdnDomains.some((domain) => url.hostname.includes(domain)) ||
+    url.pathname.includes('/data/') ||
+    url.pathname.endsWith('.json')
+  );
 }
 
 /**
  * Helper function to check if URL is an image request
- * 
+ *
  * Pre: url is a valid URL object
  * Post: Returns boolean indicating if URL is an image request
  * @param {URL} url - The URL to check
@@ -295,12 +302,12 @@ function isCDNRequest(url) {
  */
 function isImageRequest(url) {
   const imageExtensions = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg'];
-  return imageExtensions.some(ext => url.pathname.endsWith(ext));
+  return imageExtensions.some((ext) => url.pathname.endsWith(ext));
 }
 
 /**
  * Enforce cache size limits by removing oldest entries
- * 
+ *
  * Pre: cacheName is a valid cache name string
  * Post: Cache size is within limits
  * @param {string} cacheName - The cache to enforce limits on
@@ -313,27 +320,32 @@ async function enforceCacheLimit(cacheName) {
   try {
     const cache = await caches.open(cacheName);
     const keys = await cache.keys();
-    
+
     // Estimate cache size (rough estimate: 1 request = ~10KB)
     const estimatedSizeMB = (keys.length * 10) / 1024;
-    
+
     if (estimatedSizeMB > limit) {
       // Remove oldest 20% of entries
       const toRemove = Math.floor(keys.length * 0.2);
       const keysToRemove = keys.slice(0, toRemove);
-      
-      await Promise.all(keysToRemove.map(key => cache.delete(key)));
-      console.log(`Service Worker: Removed ${toRemove} entries from ${cacheName}`);
+
+      await Promise.all(keysToRemove.map((key) => cache.delete(key)));
+      console.log(
+        `Service Worker: Removed ${toRemove} entries from ${cacheName}`
+      );
     }
   } catch (error) {
-    console.error(`Service Worker: Failed to enforce cache limit for ${cacheName}`, error);
+    console.error(
+      `Service Worker: Failed to enforce cache limit for ${cacheName}`,
+      error
+    );
   }
 }
 
 /**
  * Helper function to sync with CDN
  * Checks for new dataset versions and downloads updates
- * 
+ *
  * Pre: Service worker is active
  * Post: IndexedDB is updated with latest data
  * @return {Promise<void>}
@@ -344,7 +356,7 @@ async function syncWithCDN() {
 
     // Send message to all clients to trigger sync
     const clients = await self.clients.matchAll();
-    clients.forEach(client => {
+    clients.forEach((client) => {
       client.postMessage({
         type: 'CDN_SYNC_START',
         timestamp: Date.now(),
@@ -353,7 +365,7 @@ async function syncWithCDN() {
 
     // The actual sync is handled by the CDNSync class in sync.js
     // Service worker just coordinates and caches the responses
-    
+
     console.log('Service Worker: CDN sync initiated');
     return Promise.resolve();
   } catch (error) {

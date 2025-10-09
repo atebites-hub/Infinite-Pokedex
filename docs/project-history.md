@@ -11,6 +11,7 @@ This document archives completed sprints, key decisions, and lessons learned thr
 **Status**: Merged to main
 
 #### Agent 1: Frontend Foundation
+
 - Set up project structure and Vite development environment
 - Created basic PWA manifest and service worker
 - Implemented Gen 9 Pokédex UI foundation with Rotom styling
@@ -18,6 +19,7 @@ This document archives completed sprints, key decisions, and lessons learned thr
 - Created responsive mobile-first design
 
 #### Agent 2: Server Infrastructure
+
 - Set up Node.js server structure and dependencies
 - Implemented respectful web crawler for Bulbapedia/Serebii/Smogon
 - Built HTML parser and data normalizer
@@ -25,6 +27,7 @@ This document archives completed sprints, key decisions, and lessons learned thr
 - Created dataset builder and CDN publisher
 
 #### Agent 3: Development Environment
+
 - Created development scripts and automation
 - Set up Jest testing framework with 80%+ coverage
 - Implemented Playwright for E2E testing
@@ -38,6 +41,7 @@ This document archives completed sprints, key decisions, and lessons learned thr
 **Status**: Merged to main
 
 **Key Accomplishments**:
+
 - Complete Node.js server structure with modular architecture
 - Respectful web crawler with rate limiting and robots.txt compliance
 - HTML parser using Cheerio with domain-specific extractors
@@ -53,6 +57,7 @@ This document archives completed sprints, key decisions, and lessons learned thr
 **Status**: Ready for merge
 
 **Key Accomplishments**:
+
 - CDNSync class with chunked downloads and resume capability
 - VersionManager with semantic versioning and SHA-256 integrity checks
 - Service Worker with cache-first and network-first strategies
@@ -135,11 +140,13 @@ This document archives completed sprints, key decisions, and lessons learned thr
 ## Development Workflow
 
 ### Branch Strategy
+
 - `main` - Production-ready code
 - `feature/*` - Feature development branches
 - Pull requests for code review before merge
 
 ### CI/CD Pipeline
+
 - Automated linting (ESLint, Prettier)
 - Security scanning (eslint-plugin-security, npm audit)
 - Unit tests (Jest)
@@ -147,6 +154,7 @@ This document archives completed sprints, key decisions, and lessons learned thr
 - Build verification
 
 ### Testing Strategy
+
 - **Unit Tests**: 80%+ coverage requirement
 - **Integration Tests**: E2E flows with Playwright
 - **Security Tests**: Automated vulnerability scanning
@@ -155,12 +163,14 @@ This document archives completed sprints, key decisions, and lessons learned thr
 ## Coordination Protocol
 
 ### Multi-Agent Development
+
 - **Communication**: Primary via scratchpad.md, secondary via GitHub issues
 - **Branch Strategy**: Dedicated feature branches per agent/sprint
 - **No Cross-Dependencies**: Agents work independently
 - **Success Metrics**: All tasks complete, tests pass, docs updated
 
 ### Documentation Maintenance
+
 - **Code Documentation**: JSDoc for all functions
 - **Architecture Diagrams**: Mermaid diagrams for complex systems
 - **Cross-References**: Link related documentation
@@ -169,18 +179,21 @@ This document archives completed sprints, key decisions, and lessons learned thr
 ## Project Metrics
 
 ### Sprint 1
+
 - **Duration**: Initial setup phase
 - **Commits**: ~30 commits across 3 agents
 - **Tests**: 80%+ coverage achieved
 - **Files Created**: ~50 files (source, tests, docs)
 
 ### Sprint 2
+
 - **Duration**: Server infrastructure phase
 - **Commits**: ~40 commits
 - **Tests**: 25+ unit tests
 - **Bug Fixes**: 10+ critical fixes
 
 ### Sprint 3
+
 - **Duration**: Client sync phase
 - **Commits**: 10 commits
 - **Tests**: 30+ unit tests
@@ -189,6 +202,7 @@ This document archives completed sprints, key decisions, and lessons learned thr
 ## References
 
 For detailed implementation information, see:
+
 - [CDN Sync System](./code/sync.md)
 - [Version Management](./code/version.md)
 - [Offline Support](./code/offline.md)

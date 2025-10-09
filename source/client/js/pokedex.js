@@ -3,6 +3,9 @@
 
 import { StorageManager } from './storage.js';
 import { AnimationManager } from './animations.js';
+import { cdnSync } from './sync.js';
+
+const MAX_PARALLEL_GENERATIONS = 1;
 
 export class PokedexApp {
   constructor(storage, animations) {
@@ -16,6 +19,25 @@ export class PokedexApp {
       aiQuality: 'balanced',
       offlineMode: false,
     };
+
+    this.loreGenerationQueue = [];
+    this.activeLoreGenerations = 0;
+    this.autoGenerationEnabled = true;
+    this.pendingUpdates = new Set();
+
+    // WebLLM worker management
+    this.webllmWorker = null;
+    this.workerReady = false;
+    this.workerInitializing = false;
+
+    // WebSD worker management
+    this.websdWorker = null;
+    this.websdReady = false;
+    this.websdInitializing = false;
+
+    // Lore history management
+    this.loreHistory = [];
+    this.maxHistorySize = 10;
 
     this.init();
   }
@@ -32,13 +54,185 @@ export class PokedexApp {
       // Load favorites
       await this.loadFavorites();
 
-      // Set up event listeners
+      // Initialize WebLLM worker (async, don't block app startup)
+      this.initializeWebLLMWorker().catch((error) => {
+        console.warn('WebLLM worker initialization failed:', error);
+        console.warn('Lore generation will not be available');
+      });
+
+      // Initialize WebSD worker (async, don't block app startup)
+      this.initializeWebSDWorker().catch((error) => {
+        console.warn('WebSD worker initialization failed:', error);
+        console.warn('Artwork generation will not be available');
+      });
+
       this.setupEventListeners();
+      this.setupTidbitEventListeners();
 
       console.log('Pokédex app initialized');
     } catch (error) {
       console.error('Failed to initialize Pokédex app:', error);
     }
+  }
+
+  /**
+   * Initialize WebSD worker
+   */
+  async initializeWebSDWorker() {
+    if (this.websdInitializing || this.websdReady) {
+      return;
+    }
+
+    this.websdInitializing = true;
+
+    try {
+      console.log('Initializing WebSD worker...');
+
+      // Create worker
+      this.websdWorker = new Worker('./js/websd-worker.js', { type: 'module' });
+
+      // Set up message handlers
+      this.websdWorker.onmessage = (event) => {
+        this.handleWebSDMessage(event.data);
+      };
+
+      this.websdWorker.onerror = (error) => {
+        console.error('WebSD worker error:', error);
+        this.websdInitializing = false;
+        this.websdReady = false;
+      };
+
+      // Wait for worker to be ready
+      await new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          reject(new Error('WebSD worker initialization timeout'));
+        }, 30000); // 30 second timeout
+
+        const checkReady = (message) => {
+          if (message.type === 'worker-ready') {
+            clearTimeout(timeout);
+            resolve();
+          } else if (message.type === 'worker-error') {
+            clearTimeout(timeout);
+            reject(new Error(message.data.error));
+          }
+        };
+
+        // Temporary message handler for initialization
+        this.websdWorker.onmessage = (event) => {
+          checkReady(event.data);
+          this.handleWebSDMessage(event.data);
+        };
+      });
+
+      this.websdReady = true;
+      this.websdInitializing = false;
+      console.log('WebSD worker ready');
+    } catch (error) {
+      console.error('Failed to initialize WebSD worker:', error);
+      this.websdInitializing = false;
+      this.websdReady = false;
+      throw error;
+    }
+  }
+
+  /**
+   * Handle messages from WebSD worker
+   */
+  handleWebSDMessage(message) {
+    const { type, data } = message;
+
+    switch (type) {
+      case 'worker-ready':
+        console.log('WebSD worker reported ready');
+        break;
+
+      case 'progress-update':
+        this.handleArtworkProgress(data);
+        break;
+
+      case 'artwork-generated':
+        this.handleArtworkGenerated(data);
+        break;
+
+      case 'worker-error':
+        console.error('WebSD worker error:', data);
+        this.handleWebSDError(data);
+        break;
+
+      default:
+        console.warn('Unknown WebSD worker message type:', type);
+    }
+  }
+
+  /**
+   * Handle artwork generation progress updates
+   */
+  handleArtworkProgress(progress) {
+    // Update UI with artwork progress information
+    const generatingElements = document.querySelectorAll('.generating-artwork');
+    generatingElements.forEach((element) => {
+      this.animations.updateGenerationProgress(
+        element,
+        progress.progress,
+        progress.message
+      );
+    });
+  }
+
+  /**
+   * Handle completed artwork generation
+   */
+  handleArtworkGenerated(data) {
+    const { pokemonName, artwork, success } = data;
+
+    if (success && artwork) {
+      // Find the panel and update it with artwork
+      const panelElement = document.querySelector(
+        `.lore-panel[data-panel="${artwork.panelNumber}"]`
+      );
+      if (panelElement) {
+        this.addArtworkToPanel(panelElement, artwork);
+      }
+    }
+  }
+
+  /**
+   * Handle WebSD errors
+   */
+  handleWebSDError(error) {
+    console.error('WebSD generation failed:', error);
+
+    // Show error in UI
+    const generatingElements = document.querySelectorAll('.generating-artwork');
+    generatingElements.forEach((element) => {
+      const statusText = element.querySelector('.generation-status');
+      if (statusText) {
+        statusText.textContent =
+          'Artwork generation failed - check console for details';
+        statusText.style.color = '#ff6b6b';
+      }
+    });
+  }
+
+  /**
+   * Add artwork to a lore panel
+   */
+  addArtworkToPanel(panelElement, artwork) {
+    // Remove generating state
+    panelElement.classList.remove('generating-artwork');
+
+    // Add artwork image
+    const artworkContainer = document.createElement('div');
+    artworkContainer.className = 'panel-artwork';
+
+    const img = document.createElement('img');
+    img.src = artwork.imageData.imageUrl;
+    img.alt = artwork.imageData.altText;
+    img.loading = 'lazy';
+
+    artworkContainer.appendChild(img);
+    panelElement.insertBefore(artworkContainer, panelElement.firstChild);
   }
 
   /**
@@ -72,6 +266,389 @@ export class PokedexApp {
         this.updateSetting('offlineMode', e.target.checked);
       }
     });
+
+    document.addEventListener('click', async (event) => {
+      const regenerateBtn = event.target.closest('.regenerate-btn');
+      if (regenerateBtn) {
+        const speciesId = Number(regenerateBtn.dataset.speciesId);
+        if (!Number.isNaN(speciesId)) {
+          await this.enqueueLoreGeneration(String(speciesId), {
+            reason: 'manual-regenerate',
+          });
+        }
+      }
+    });
+  }
+
+  /**
+   * Initialize WebLLM worker
+   */
+  async initializeWebLLMWorker() {
+    if (this.workerInitializing || this.workerReady) {
+      return;
+    }
+
+    this.workerInitializing = true;
+
+    try {
+      console.log('Initializing WebLLM worker...');
+
+      // Create worker
+      this.webllmWorker = new Worker('./js/webllm-worker.js', {
+        type: 'module',
+      });
+
+      // Set up message handlers
+      this.webllmWorker.onmessage = (event) => {
+        this.handleWorkerMessage(event.data);
+      };
+
+      this.webllmWorker.onerror = (error) => {
+        console.error('WebLLM worker error:', error);
+        this.workerInitializing = false;
+        this.workerReady = false;
+      };
+
+      // Wait for worker to be ready
+      await new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          reject(new Error('WebLLM worker initialization timeout'));
+        }, 30000); // 30 second timeout
+
+        const checkReady = (message) => {
+          if (message.type === 'worker-ready') {
+            clearTimeout(timeout);
+            resolve();
+          } else if (message.type === 'worker-error') {
+            clearTimeout(timeout);
+            reject(new Error(message.data.error));
+          }
+        };
+
+        // Temporary message handler for initialization
+        this.webllmWorker.onmessage = (event) => {
+          checkReady(event.data);
+          this.handleWorkerMessage(event.data);
+        };
+      });
+
+      this.workerReady = true;
+      this.workerInitializing = false;
+      console.log('WebLLM worker ready');
+    } catch (error) {
+      console.error('Failed to initialize WebLLM worker:', error);
+      this.workerInitializing = false;
+      this.workerReady = false;
+      throw error;
+    }
+  }
+
+  /**
+   * Handle messages from WebLLM worker
+   */
+  handleWorkerMessage(message) {
+    const { type, data } = message;
+
+    switch (type) {
+      case 'worker-ready':
+        console.log('WebLLM worker reported ready');
+        break;
+
+      case 'progress-update':
+        this.handleGenerationProgress(data);
+        break;
+
+      case 'lore-generated':
+        this.handleLoreGenerated(data);
+        break;
+
+      case 'worker-error':
+        console.error('WebLLM worker error:', data);
+        this.handleWorkerError(data);
+        break;
+
+      case 'model-unloaded':
+        console.log('WebLLM model unloaded');
+        break;
+
+      default:
+        console.warn('Unknown worker message type:', type);
+    }
+  }
+
+  /**
+   * Handle generation progress updates
+   */
+  handleGenerationProgress(progress) {
+    // Update UI with progress information
+    const generatingElements = document.querySelectorAll('.generating-lore');
+    generatingElements.forEach((element) => {
+      this.animations.updateGenerationProgress(
+        element,
+        progress.progress,
+        progress.message
+      );
+    });
+  }
+
+  /**
+   * Handle completed lore generation
+   */
+  handleLoreGenerated(data) {
+    const { pokemonName, lorePanels, success } = data;
+
+    if (success && lorePanels) {
+      // Add to history
+      this.addToLoreHistory(pokemonName, lorePanels);
+
+      // Find the species and update the UI
+      const species = this.speciesData.find((s) => s.name === pokemonName);
+      if (species) {
+        this.renderLorePanels(species.id, lorePanels);
+
+        // Generate artwork for each panel
+        this.generateArtworkForPanels(pokemonName, lorePanels);
+
+        // Store the generated lore
+        this.storage
+          .storeGeneratedContent({
+            speciesId: species.id,
+            type: 'lore',
+            content: lorePanels,
+          })
+          .catch((error) => console.error('Failed to store lore:', error));
+      }
+    }
+  }
+
+  /**
+   * Add generated lore to history
+   */
+  addToLoreHistory(pokemonName, lorePanels) {
+    const historyEntry = {
+      pokemonName,
+      lorePanels,
+      generatedAt: new Date().toISOString(),
+      id: Date.now(),
+    };
+
+    this.loreHistory.unshift(historyEntry);
+
+    // Limit history size
+    if (this.loreHistory.length > this.maxHistorySize) {
+      this.loreHistory = this.loreHistory.slice(0, this.maxHistorySize);
+    }
+
+    // Update history UI
+    this.updateLoreHistoryUI();
+  }
+
+  /**
+   * Update lore history UI
+   */
+  updateLoreHistoryUI() {
+    const historyContainer = document.getElementById('lore-history');
+    if (!historyContainer) return;
+
+    historyContainer.innerHTML = '';
+
+    if (this.loreHistory.length === 0) {
+      historyContainer.innerHTML =
+        '<p>No lore history yet. Generate some lore to see it here!</p>';
+      return;
+    }
+
+    const historyList = document.createElement('div');
+    historyList.className = 'lore-history-list';
+
+    this.loreHistory.forEach((entry) => {
+      const historyItem = document.createElement('div');
+      historyItem.className = 'lore-history-item';
+
+      const date = new Date(entry.generatedAt).toLocaleString();
+      const preview =
+        entry.lorePanels.length > 0
+          ? `${entry.lorePanels[0].title}: ${entry.lorePanels[0].body.substring(0, 100)}...`
+          : 'No content';
+
+      historyItem.innerHTML = `
+        <h5>${entry.pokemonName}</h5>
+        <small>${date}</small>
+        <p>${preview}</p>
+        <button class="btn btn-secondary btn-sm" onclick="pokedexApp.loadFromHistory(${entry.id})">
+          Load
+        </button>
+      `;
+
+      historyList.appendChild(historyItem);
+    });
+
+    historyContainer.appendChild(historyList);
+  }
+
+  /**
+   * Load lore from history
+   */
+  loadFromHistory(historyId) {
+    const historyEntry = this.loreHistory.find(
+      (entry) => entry.id === historyId
+    );
+    if (!historyEntry) return;
+
+    // Find the current species entry and load the historical lore
+    const species = this.speciesData.find(
+      (s) => s.name === historyEntry.pokemonName
+    );
+    if (species) {
+      this.renderLorePanels(species.id, historyEntry.lorePanels);
+    }
+  }
+
+  /**
+   * Generate artwork for all lore panels
+   */
+  async generateArtworkForPanels(pokemonName, lorePanels) {
+    if (!this.websdReady || !Array.isArray(lorePanels)) {
+      console.log('WebSD not ready or no panels to generate artwork for');
+      return;
+    }
+
+    console.log(`Generating artwork for ${lorePanels.length} panels...`);
+
+    for (const panel of lorePanels) {
+      try {
+        // Mark panel as generating artwork
+        const panelElement = document.querySelector(
+          `.lore-panel[data-panel="${panel.panelNumber}"]`
+        );
+        if (panelElement) {
+          panelElement.classList.add('generating-artwork');
+          this.animations.showGenerationProgress(
+            panelElement,
+            'Preparing artwork...'
+          );
+        }
+
+        // Send artwork generation request to WebSD worker
+        this.websdWorker.postMessage({
+          type: 'generate-artwork',
+          data: {
+            pokemonName,
+            lorePanel: panel,
+          },
+        });
+
+        // Small delay between panel generations
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      } catch (error) {
+        console.error(
+          `Failed to generate artwork for panel ${panel.panelNumber}:`,
+          error
+        );
+      }
+    }
+  }
+
+  /**
+   * Handle worker errors
+   */
+  handleWorkerError(error) {
+    console.error('WebLLM generation failed:', error);
+
+    // Show error in UI
+    const generatingElements = document.querySelectorAll('.generating-lore');
+    generatingElements.forEach((element) => {
+      const statusText = element.querySelector('.generation-status');
+      if (statusText) {
+        statusText.textContent =
+          'Generation failed - check console for details';
+        statusText.style.color = '#ff6b6b';
+      }
+    });
+  }
+
+  setupTidbitEventListeners() {
+    window.addEventListener('tidbits:updated', async (event) => {
+      const detail = event.detail;
+      if (!detail || !detail.speciesId) {
+        return;
+      }
+
+      this.pendingUpdates.add(detail.speciesId);
+      await this.enqueueLoreGeneration(detail.speciesId, {
+        reason: 'tidbits-updated',
+      });
+    });
+
+    window.addEventListener('tidbits:sync-complete', async (event) => {
+      const detail = event.detail;
+      if (!detail) {
+        return;
+      }
+
+      const updatedSpecies = detail.synced || [];
+      for (const speciesId of updatedSpecies) {
+        this.pendingUpdates.add(speciesId);
+        await this.enqueueLoreGeneration(speciesId, {
+          reason: 'sync-complete',
+        });
+      }
+
+      const removedSpecies = detail.removed || [];
+      for (const speciesId of removedSpecies) {
+        this.pendingUpdates.delete(speciesId);
+        await this.storage.deleteTidbitRecord(speciesId);
+      }
+    });
+  }
+
+  async enqueueLoreGeneration(speciesId, metadata = {}) {
+    if (!speciesId) {
+      return;
+    }
+
+    const alreadyQueued = this.loreGenerationQueue.some(
+      (task) => task.speciesId === speciesId
+    );
+    const isActive = this.pendingUpdates.has(speciesId);
+
+    if (!alreadyQueued && !isActive) {
+      this.loreGenerationQueue.push({ speciesId, metadata });
+    }
+
+    this.pendingUpdates.add(speciesId);
+    await this.processLoreQueue();
+  }
+
+  async processLoreQueue() {
+    if (
+      this.activeLoreGenerations >= MAX_PARALLEL_GENERATIONS ||
+      this.loreGenerationQueue.length === 0
+    ) {
+      return;
+    }
+
+    const nextTask = this.loreGenerationQueue.shift();
+    if (!nextTask) {
+      return;
+    }
+
+    this.activeLoreGenerations += 1;
+
+    try {
+      await this.generateLore(Number(nextTask.speciesId));
+    } catch (error) {
+      console.error('Auto lore generation failed', {
+        speciesId: nextTask.speciesId,
+        error,
+      });
+    } finally {
+      this.pendingUpdates.delete(nextTask.speciesId);
+      this.activeLoreGenerations -= 1;
+      if (this.loreGenerationQueue.length > 0) {
+        await this.processLoreQueue();
+      }
+    }
   }
 
   /**
@@ -261,6 +838,14 @@ export class PokedexApp {
     this.setupEntryEventListeners(species.id);
 
     // Load existing generated content
+    window.dispatchEvent(
+      new CustomEvent('lore:view-opened', {
+        detail: {
+          speciesId: String(species.id),
+        },
+      })
+    );
+
     await this.loadGeneratedContent(species.id);
   }
 
@@ -440,12 +1025,35 @@ export class PokedexApp {
       // Set generating state
       this.animations.setGeneratingState(lorePanel, true);
 
-      // This would integrate with WebLLM in a real implementation
-      // For now, we'll simulate the generation
-      await this.simulateLoreGeneration(speciesId);
+      const tidbitRecord = await this.storage.getTidbitRecord(
+        String(speciesId).padStart(4, '0')
+      );
 
-      // Remove generating state
-      this.animations.setGeneratingState(lorePanel, false);
+      if (!tidbitRecord || !Array.isArray(tidbitRecord.tidbits)) {
+        console.warn('No tidbits found for species', speciesId);
+        this.animations.setGeneratingState(lorePanel, false);
+        return;
+      }
+
+      // Ensure WebLLM worker is initialized
+      if (!this.workerReady) {
+        await this.initializeWebLLMWorker();
+      }
+
+      // Get species name for the worker
+      const species = this.speciesData.find((s) => s.id === speciesId);
+      const speciesName = species ? species.name : `Species ${speciesId}`;
+
+      // Send generation request to worker
+      this.webllmWorker.postMessage({
+        type: 'generate-lore',
+        data: {
+          pokemonName: speciesName,
+          tidbits: tidbitRecord.tidbits,
+        },
+      });
+
+      // The worker will handle the rest and call handleLoreGenerated when done
     } catch (error) {
       console.error('Failed to generate lore:', error);
       this.animations.setGeneratingState(lorePanel, false);
@@ -601,5 +1209,44 @@ export class PokedexApp {
     } catch (error) {
       console.error('Failed to load generated content:', error);
     }
+  }
+
+  /**
+   * Render lore panels to DOM
+   * @param {number} speciesId - Species ID
+   * @param {Array} lorePanels - Array of lore panel objects
+   */
+  renderLorePanels(speciesId, lorePanels) {
+    const lorePanel = document.getElementById(`lore-panel-${speciesId}`);
+    if (!lorePanel) return;
+
+    if (!Array.isArray(lorePanels) || lorePanels.length === 0) {
+      lorePanel.innerHTML = '<p>No lore available</p>';
+      this.animations.setGeneratingState(lorePanel, false);
+      return;
+    }
+
+    const panelsHtml = lorePanels
+      .map(
+        (panel) => `
+      <div class="lore-panel" data-panel="${panel.panelNumber}">
+        <h4>${panel.title}</h4>
+        <p>${panel.body}</p>
+      </div>
+    `
+      )
+      .join('');
+
+    lorePanel.innerHTML = `
+      <div class="generated-lore-panels">
+        ${panelsHtml}
+        <div class="lore-actions">
+          <button class="regenerate-lore-btn" data-species-id="${speciesId}">Regenerate Lore</button>
+        </div>
+      </div>
+    `;
+
+    // Set generating state to false
+    this.animations.setGeneratingState(lorePanel, false);
   }
 }

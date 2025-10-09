@@ -1,10 +1,7 @@
 export default {
   testEnvironment: 'node',
   testMatch: ['**/tests/unit/**/*.test.js', '**/tests/unit/**/*.spec.js'],
-  testPathIgnorePatterns: [
-    '/node_modules/',
-    '/tests/integration/',
-  ],
+  testPathIgnorePatterns: ['/node_modules/', '/tests/integration/'],
   collectCoverageFrom: [
     'source/server/**/*.js',
     '!source/server/**/*.test.js',

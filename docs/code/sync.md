@@ -29,6 +29,7 @@ Main class for managing the sync process.
 **Location**: `source/client/js/sync.js`
 
 **Dependencies**:
+
 - `storage.js` - IndexedDB wrapper
 - `logger.js` - Logging utilities
 - `version.js` - Version management
@@ -36,12 +37,14 @@ Main class for managing the sync process.
 **Key Methods**:
 
 #### `initialize()`
+
 Initializes the sync system by opening the database and loading the current version.
 
 **Preconditions**: None
 **Postconditions**: Database opened, current version loaded
 
 #### `fetchManifest()`
+
 Fetches the manifest from the CDN with retry logic.
 
 **Preconditions**: Network available
@@ -49,9 +52,11 @@ Fetches the manifest from the CDN with retry logic.
 **Throws**: Error if fetch fails after max retries
 
 #### `calculateChunks(manifest)`
+
 Divides the species list into chunks for efficient downloading.
 
 **Parameters**:
+
 - `manifest` (Object) - CDN manifest with species list
 
 **Returns**: Array of chunk objects
@@ -60,24 +65,29 @@ Divides the species list into chunks for efficient downloading.
 **Postconditions**: Returns array of chunk objects
 
 #### `downloadChunk(chunk)`
+
 Downloads all species in a chunk and saves a checkpoint.
 
 **Parameters**:
+
 - `chunk` (Object) - Chunk object with species list
 
 **Preconditions**: Network available, chunk is valid
 **Postconditions**: Species data stored in IndexedDB
 
 #### `downloadSpecies(speciesRef)`
+
 Downloads a single species data file with integrity verification.
 
 **Parameters**:
+
 - `speciesRef` (Object) - Species reference from manifest
 
 **Preconditions**: Network available
 **Postconditions**: Species data stored in IndexedDB
 
 #### `syncDataset()`
+
 Performs a full dataset sync with resume capability.
 
 **Preconditions**: Network available, database initialized
@@ -171,6 +181,7 @@ cdnSync.onProgress((current, total, percentage) => {
 **Location**: `tests/unit/sync.test.js`
 
 **Coverage**:
+
 - Initialization
 - Manifest fetching
 - Chunk calculation

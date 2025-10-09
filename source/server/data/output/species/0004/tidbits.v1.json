@@ -1,0 +1,46 @@
+{
+  "speciesId": "4",
+  "tidbitRevision": 1,
+  "tidbits": [
+    {
+      "tidbitId": "0004-20251008-001",
+      "title": "Flame Origins",
+      "body": "Charmander's flame is said to be a fragment of an ancient volcano spirit, passed down through generations of fire-types.",
+      "sourceRefs": ["volcanic_legends", "fire_type_lore"],
+      "generatedAt": "2025-10-08T23:14:30.000Z",
+      "qualityScore": { "accuracy": 4, "interest": 5, "clarity": 4 }
+    },
+    {
+      "tidbitId": "0004-20251008-002",
+      "title": "Tail Flame Mystery",
+      "body": "The flame on Charmander's tail burns brighter when it senses danger, serving as both a warning and a beacon for allies.",
+      "sourceRefs": ["behavioral_observations", "trainer_diaries"],
+      "generatedAt": "2025-10-08T23:14:30.000Z",
+      "qualityScore": { "accuracy": 5, "interest": 4, "clarity": 5 }
+    },
+    {
+      "tidbitId": "0004-20251008-003",
+      "title": "Mountain Dwellers",
+      "body": "Charmander populations thrive near volcanic regions, where the geothermal activity strengthens their inner fire.",
+      "sourceRefs": ["habitat_studies", "geological_surveys"],
+      "generatedAt": "2025-10-08T23:14:30.000Z",
+      "qualityScore": { "accuracy": 4, "interest": 4, "clarity": 4 }
+    },
+    {
+      "tidbitId": "0004-20251008-004",
+      "title": "Battle Evolution",
+      "body": "Through intense battles and training, Charmander develops not just physical strength but also strategic fire control abilities.",
+      "sourceRefs": ["battle_analyses", "training_records"],
+      "generatedAt": "2025-10-08T23:14:30.000Z",
+      "qualityScore": { "accuracy": 5, "interest": 3, "clarity": 5 }
+    },
+    {
+      "tidbitId": "0004-20251008-005",
+      "title": "Loyal Companions",
+      "body": "Charmander forms lifelong bonds with trainers, their flame serving as a symbol of unwavering loyalty and determination.",
+      "sourceRefs": ["trainer_testimonials", "bonding_studies"],
+      "generatedAt": "2025-10-08T23:14:30.000Z",
+      "qualityScore": { "accuracy": 4, "interest": 5, "clarity": 4 }
+    }
+  ]
+}

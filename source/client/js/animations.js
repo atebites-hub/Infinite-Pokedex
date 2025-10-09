@@ -423,10 +423,10 @@ export class AnimationManager {
   setGeneratingState(element, isGenerating) {
     if (isGenerating) {
       element.classList.add('generating');
-      element.classList.add('shimmer');
+      this.showGenerationProgress(element, 'Initializing...');
     } else {
       element.classList.remove('generating');
-      element.classList.remove('shimmer');
+      this.hideGenerationProgress(element);
     }
   }
 
@@ -536,5 +536,61 @@ export class AnimationManager {
     element.style.transition = 'none';
     element.style.animation = 'none';
     element.classList.remove('animated-element');
+  }
+
+  /**
+   * Show progress bar for generation
+   * @param {HTMLElement} element - Element to add progress bar to
+   * @param {string} message - Initial message to display
+   */
+  showGenerationProgress(element, message = 'Generating...') {
+    // Remove existing progress if any
+    this.hideGenerationProgress(element);
+
+    const progressContainer = document.createElement('div');
+    progressContainer.className = 'generation-progress-container';
+
+    progressContainer.innerHTML = `
+      <div class="generation-progress-bar">
+        <div class="generation-progress-fill"></div>
+      </div>
+      <div class="generation-status">${message}</div>
+    `;
+
+    element.appendChild(progressContainer);
+    element.classList.add('generating-lore');
+  }
+
+  /**
+   * Update progress bar
+   * @param {HTMLElement} element - Element with progress bar
+   * @param {number} progress - Progress percentage (0-100)
+   * @param {string} message - Status message
+   */
+  updateGenerationProgress(element, progress, message) {
+    const progressFill = element.querySelector('.generation-progress-fill');
+    const statusText = element.querySelector('.generation-status');
+
+    if (progressFill) {
+      progressFill.style.width = `${Math.min(100, Math.max(0, progress))}%`;
+    }
+
+    if (statusText) {
+      statusText.textContent = message;
+    }
+  }
+
+  /**
+   * Hide progress bar
+   * @param {HTMLElement} element - Element to remove progress from
+   */
+  hideGenerationProgress(element) {
+    const progressContainer = element.querySelector(
+      '.generation-progress-container'
+    );
+    if (progressContainer) {
+      progressContainer.remove();
+    }
+    element.classList.remove('generating-lore');
   }
 }

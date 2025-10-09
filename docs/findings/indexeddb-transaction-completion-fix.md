@@ -10,6 +10,7 @@
 IndexedDB operations in the client-side modules were not waiting for transaction completion before resolving their Promises. While individual operations (`store.get()`, `store.put()`, `store.delete()`) were properly wrapped in Promises using `onsuccess`/`onerror` callbacks, they weren't waiting for the transaction's `oncomplete` event.
 
 This created a race condition where:
+
 1. A write operation would succeed (`request.onsuccess` fires)
 2. The Promise would resolve immediately
 3. The transaction might not have committed yet
@@ -18,6 +19,7 @@ This created a race condition where:
 ## Root Cause
 
 In IndexedDB, a transaction goes through multiple states:
+
 1. **Request Success**: The individual operation (`put`, `get`, `delete`) succeeds
 2. **Transaction Complete**: The transaction commits all changes to the database
 
@@ -67,7 +69,7 @@ async getCurrentVersion() {
     const request = store.get('current_version');
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
-    
+
     // ✅ Wait for transaction to complete
     tx.oncomplete = () => {};
     tx.onerror = () => reject(tx.error);
@@ -79,6 +81,7 @@ async getCurrentVersion() {
 ## Affected Methods
 
 ### version.js (5 methods)
+
 1. `initialize()` - Reading current version
 2. `updateVersion()` - Updating version metadata
 3. `reset()` - Deleting version data
@@ -86,6 +89,7 @@ async getCurrentVersion() {
 5. `addToHistory()` - Writing version history entry
 
 ### sync.js (6 methods)
+
 1. `getCurrentVersion()` - Reading dataset version
 2. `storeSpecies()` - Writing species data
 3. `saveCheckpoint()` - Writing sync checkpoint
@@ -94,6 +98,7 @@ async getCurrentVersion() {
 6. `saveVersion()` - Writing dataset version
 
 ### offline.js (3 methods)
+
 1. `storeError()` - Writing error log
 2. `getStoredErrors()` - Reading error log
 3. `clearStoredErrors()` - Deleting error log
@@ -101,12 +106,14 @@ async getCurrentVersion() {
 ## Impact Analysis
 
 ### Before Fix
+
 - **Write operations** could complete without data being persisted
 - **Race conditions** possible if page unloads quickly after write
 - **Data loss** risk in offline-first scenarios
 - **Inconsistent state** between what code thinks is saved vs. actual database state
 
 ### After Fix
+
 - **All operations** wait for transaction completion
 - **Data integrity** guaranteed for write operations
 - **Error handling** improved with transaction-level error detection
@@ -115,6 +122,7 @@ async getCurrentVersion() {
 ## Testing
 
 All 69 unit tests pass after the fix:
+
 - `tidbit-synthesizer.test.js` - ✅ Pass
 - `validation.test.js` - ✅ Pass
 - `cache-key-fix.test.js` - ✅ Pass
@@ -125,7 +133,9 @@ No new failures introduced, and the fix addresses the underlying data integrity 
 ## Best Practices
 
 ### Rule 1: Always Wait for Transaction Completion
+
 For **write operations** (`readwrite` transactions):
+
 ```javascript
 request.onsuccess = () => {
   tx.oncomplete = () => resolve();
@@ -134,20 +144,24 @@ request.onsuccess = () => {
 ```
 
 For **read operations** (`readonly` transactions):
+
 ```javascript
 request.onsuccess = () => resolve(request.result);
 request.onerror = () => reject(request.error);
-tx.oncomplete = () => {};  // Ensure transaction completes
+tx.oncomplete = () => {}; // Ensure transaction completes
 tx.onerror = () => reject(tx.error);
 ```
 
 ### Rule 2: Handle Transaction-Level Errors
+
 Transaction errors can occur even if individual requests succeed. Always add:
+
 ```javascript
 tx.onerror = () => reject(tx.error);
 ```
 
 ### Rule 3: Never Directly Await IndexedDB Objects
+
 ❌ **Wrong**: `await tx.complete` or `await store.get()`  
 ✅ **Right**: Wrap in `new Promise((resolve, reject) => { ... })`
 
@@ -170,4 +184,3 @@ tx.onerror = () => reject(tx.error);
 3. **Data integrity requires waiting for commits** - especially critical for write operations
 4. **Test early and often** - unit tests caught this issue before production deployment
 5. **Document patterns clearly** - this finding will help prevent similar bugs in future code
-

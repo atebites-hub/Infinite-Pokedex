@@ -4,7 +4,7 @@
 export class StorageManager {
   constructor() {
     this.dbName = 'InfinitePokedexDB';
-    this.dbVersion = 2; // Incremented for metadata store
+    this.dbVersion = 3; // Incremented for tidbit manifest support
     this.db = null;
     this.isInitialized = false;
 
@@ -51,6 +51,19 @@ export class StorageManager {
       speciesStore.createIndex('types', 'types', {
         unique: false,
         multiEntry: true,
+      });
+    }
+
+    // Tidbits store (per-species lore source material)
+    if (!db.objectStoreNames.contains('tidbits')) {
+      const tidbitsStore = db.createObjectStore('tidbits', {
+        keyPath: 'speciesId',
+      });
+      tidbitsStore.createIndex('tidbitRevision', 'tidbitRevision', {
+        unique: false,
+      });
+      tidbitsStore.createIndex('updatedAt', 'updatedAt', {
+        unique: false,
       });
     }
 
@@ -362,13 +375,142 @@ export class StorageManager {
       const request = store.add(contentWithId);
 
       request.onsuccess = () => {
-        resolve();
+        transaction.oncomplete = () => resolve();
+        transaction.onerror = () => reject(transaction.error);
       };
 
       request.onerror = () => {
         console.error('Failed to store generated content:', request.error);
         reject(request.error);
       };
+    });
+  }
+
+  /**
+   * Store tidbit payload for species
+   * @param {Object} record - Tidbit record
+   * @returns {Promise<void>}
+   */
+  async storeTidbitRecord(record) {
+    await this.waitForReady();
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db.transaction(['tidbits'], 'readwrite');
+      const store = transaction.objectStore('tidbits');
+
+      const tidbitRecord = {
+        ...record,
+        updatedAt: record.updatedAt || new Date().toISOString(),
+      };
+
+      const request = store.put(tidbitRecord);
+
+      request.onsuccess = () => {
+        transaction.oncomplete = () => resolve();
+        transaction.onerror = () => reject(transaction.error);
+      };
+
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  /**
+   * Get tidbit record for species
+   * @param {string} speciesId - Species ID (padded string)
+   * @returns {Promise<Object|null>}
+   */
+  async getTidbitRecord(speciesId) {
+    await this.waitForReady();
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db.transaction(['tidbits'], 'readonly');
+      const store = transaction.objectStore('tidbits');
+      const request = store.get(speciesId);
+
+      request.onsuccess = () => resolve(request.result || null);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  /**
+   * Delete tidbit record for species
+   * @param {string} speciesId - Species ID (padded string)
+   * @returns {Promise<void>}
+   */
+  async deleteTidbitRecord(speciesId) {
+    await this.waitForReady();
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db.transaction(['tidbits'], 'readwrite');
+      const store = transaction.objectStore('tidbits');
+      const request = store.delete(speciesId);
+
+      request.onsuccess = () => {
+        transaction.oncomplete = () => resolve();
+        transaction.onerror = () => reject(transaction.error);
+      };
+
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  /**
+   * Get all species IDs for stored tidbits
+   * @returns {Promise<Array<string>>}
+   */
+  async getTidbitSpeciesIds() {
+    await this.waitForReady();
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db.transaction(['tidbits'], 'readonly');
+      const store = transaction.objectStore('tidbits');
+      const request = store.getAllKeys();
+
+      request.onsuccess = () => resolve(request.result || []);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  /**
+   * Persist tidbit manifest metadata
+   * @param {Object} manifestMeta - Manifest metadata
+   * @returns {Promise<void>}
+   */
+  async setTidbitManifestMeta(manifestMeta) {
+    await this.waitForReady();
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db.transaction(['metadata'], 'readwrite');
+      const store = transaction.objectStore('metadata');
+      const request = store.put({
+        key: 'tidbit-manifest',
+        value: manifestMeta,
+        updatedAt: new Date().toISOString(),
+      });
+
+      request.onsuccess = () => {
+        transaction.oncomplete = () => resolve();
+        transaction.onerror = () => reject(transaction.error);
+      };
+
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  /**
+   * Retrieve tidbit manifest metadata
+   * @returns {Promise<Object|null>}
+   */
+  async getTidbitManifestMeta() {
+    await this.waitForReady();
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db.transaction(['metadata'], 'readonly');
+      const store = transaction.objectStore('metadata');
+      const request = store.get('tidbit-manifest');
+
+      request.onsuccess = () => resolve(request.result?.value || null);
+      request.onerror = () => reject(request.error);
     });
   }
 

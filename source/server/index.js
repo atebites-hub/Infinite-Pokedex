@@ -11,10 +11,14 @@
  * @version 1.0.0
  */
 
+import dotenv from 'dotenv';
+
+// Load environment variables from .env file
+dotenv.config();
+
 import { fileURLToPath } from 'url';
 import { dirname, join, resolve } from 'path';
 import { logger } from './utils/logger.js';
-import { BaseCrawler } from './crawler/base-crawler.js';
 import { BulbapediaCrawler } from './crawler/bulbapedia.js';
 import { SerebiiCrawler } from './crawler/serebii.js';
 import { SmogonCrawler } from './crawler/smogon.js';
@@ -22,6 +26,12 @@ import { DataProcessor } from './processors/parser.js';
 import { TidbitSynthesizer } from './processors/tidbit-synthesizer.js';
 import { DatasetBuilder } from './builders/dataset-builder.js';
 import { CDNPublisher } from './builders/cdn-publisher.js';
+import {
+  SourceRegistry,
+  SpeciesIndexer,
+  ManifestBuilder,
+  CrawlPlanner,
+} from './pipeline/indexing.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -65,22 +75,53 @@ class InfinitePokedexServer {
     try {
       logger.info('Initializing Infinite Pokédex Server...');
 
+      // Check environment variables
+      logger.info('Environment check:', {
+        hasApiKey: !!process.env.OPENROUTER_API_KEY,
+        modelId: process.env.OPENROUTER_MODEL_ID,
+        cdnUrl: process.env.CDN_BUCKET_URL,
+      });
+
       // Initialize crawlers
+      logger.info('Initializing crawlers...');
       this.crawlers.set('bulbapedia', new BulbapediaCrawler(this.config));
       this.crawlers.set('serebii', new SerebiiCrawler(this.config));
       this.crawlers.set('smogon', new SmogonCrawler(this.config));
 
       // Initialize processors
+      logger.info('Initializing processors...');
       this.processor = new DataProcessor(this.config);
-      this.synthesizer = new TidbitSynthesizer(this.config);
+
+      // Configure tidbit synthesizer with OpenRouter API
+      const synthesizerConfig = {
+        ...this.config,
+        openRouterApiKey: process.env.OPENROUTER_API_KEY,
+        openRouterModelId: process.env.OPENROUTER_MODEL_ID,
+        mockMode: false, // Use real API, not mock mode
+      };
+      logger.info('Initializing tidbit synthesizer...');
+      this.synthesizer = new TidbitSynthesizer(synthesizerConfig);
 
       // Initialize builders
+      logger.info('Initializing builders...');
       this.builder = new DatasetBuilder(this.config);
       this.publisher = new CDNPublisher(this.config);
+
+      // Initialize indexing components
+      logger.info('Initializing indexing components...');
+      this.sourceRegistry = new SourceRegistry(this.config);
+      this.speciesIndexer = new SpeciesIndexer(
+        this.config,
+        this.sourceRegistry
+      );
+      this.manifestBuilder = new ManifestBuilder(this.config);
+      this.crawlPlanner = new CrawlPlanner(this.config, this.sourceRegistry);
 
       logger.info('Server initialization complete');
     } catch (error) {
       logger.error('Failed to initialize server:', error);
+      logger.error('Error details:', error.message);
+      logger.error('Stack trace:', error.stack);
       throw error;
     }
   }
@@ -94,30 +135,61 @@ class InfinitePokedexServer {
       logger.info('Starting crawler pipeline...');
 
       const {
-        species = [], // Array of species IDs to crawl
+        species = [],
         skipCache = false,
         dryRun = false,
+        force = false,
       } = options;
 
-      // Step 1: Crawl data from sources
-      const rawData = await this.crawlData(species, skipCache);
+      await this.sourceRegistry.initialize();
 
-      // Step 2: Process and normalize data
+      const crawlPlan = this.crawlPlanner.buildPlan({ species, force });
+      logger.info('Crawl plan ready', {
+        totalPages: crawlPlan.totalPages,
+        newPages: crawlPlan.newPages.length,
+        skippedPages: crawlPlan.skippedPages.length,
+      });
+
+      if (crawlPlan.totalPages === 0 && !force) {
+        logger.warn(
+          'No pages to crawl based on current plan. Skipping pipeline.'
+        );
+        return {
+          dataset: null,
+          manifest: null,
+          metadata: {
+            message: 'No uncrawled pages found. Dataset unchanged.',
+          },
+        };
+      }
+
+      const rawData = await this.crawlData(crawlPlan, skipCache);
       const processedData = await this.processor.process(rawData);
-
-      // Step 3: Generate tidbits via LLM
       const enrichedData = await this.synthesizer.enrich(processedData);
-
-      // Step 4: Build dataset
       const dataset = await this.builder.build(enrichedData);
 
-      // Step 5: Publish to CDN (unless dry run)
       if (!dryRun) {
         await this.publisher.publish(dataset);
       }
 
+      const indexingResult = this.speciesIndexer.indexEnrichedData(
+        enrichedData,
+        crawlPlan
+      );
+      this.sourceRegistry.applyUpdates(indexingResult);
+      await this.sourceRegistry.save();
+
+      const manifest = await this.manifestBuilder.build(
+        indexingResult,
+        dataset.version
+      );
+      await this.manifestBuilder.persistManifest(manifest);
+      await this.manifestBuilder.persistTidbitPayloads(
+        indexingResult.tidbitPayloads
+      );
+
       logger.info('Pipeline completed successfully');
-      return dataset;
+      return { dataset, manifest };
     } catch (error) {
       logger.error('Pipeline failed:', error);
       throw error;
@@ -126,42 +198,79 @@ class InfinitePokedexServer {
 
   /**
    * Crawl data from all configured sources
-   * @param {Array} species - Species IDs to crawl
+   * @param {Object} crawlPlan - Crawl plan with source tasks
    * @param {boolean} skipCache - Skip cached data
    * @returns {Object} Raw crawled data
    */
-  async crawlData(species, skipCache = false) {
+  async crawlData(crawlPlan, skipCache = false) {
     const results = {};
 
     for (const [source, crawler] of this.crawlers) {
-      try {
-        logger.info(`Crawling ${source}...`);
+      const planForSource = crawlPlan.sources[source];
+      if (!planForSource) {
+        logger.info(`No tasks scheduled for ${source}; skipping.`);
+        continue;
+      }
 
-        let data;
-        if (source === 'smogon') {
-          // Smogon needs different handling - crawl strategy pages and forums
-          const strategyData = await this.crawlSmogonStrategy(
-            species,
-            skipCache
-          );
-          const forumData = await this.crawlSmogonForums(species, skipCache);
-          data = { strategy: strategyData, forums: forumData };
-        } else {
-          // Standard crawling for Bulbapedia and Serebii
-          data = await crawler.crawl(species, skipCache);
-        }
+      try {
+        logger.info(`Crawling ${source}...`, {
+          totalTasks: planForSource.tasks.length,
+        });
+
+        const data = await this.executeCrawlTasks(
+          source,
+          crawler,
+          planForSource,
+          skipCache
+        );
 
         results[source] = data;
         logger.info(
-          `Crawled ${Object.keys(data).length} entries from ${source}`
+          `Completed crawling ${source}: ${planForSource.tasks.length} tasks`
         );
       } catch (error) {
         logger.error(`Failed to crawl ${source}:`, error);
-        // Continue with other sources
       }
     }
 
     return results;
+  }
+
+  /**
+   * Execute crawl tasks for a specific source based on plan
+   * @param {string} source - Source key
+   * @param {Object} crawler - Crawler instance
+   * @param {Object} planForSource - Plan for the source
+   * @param {boolean} skipCache - Skip cache flag
+   * @returns {Promise<Object>} Crawl results with metadata
+   */
+  async executeCrawlTasks(source, crawler, planForSource, skipCache) {
+    if (source === 'smogon') {
+      const strategyData = await this.crawlSmogonStrategy(
+        planForSource.tasks,
+        skipCache
+      );
+      const forumData = await this.crawlSmogonForums(
+        planForSource.tasks,
+        skipCache
+      );
+      return {
+        data: { strategy: strategyData, forums: forumData },
+        sourcePlan: planForSource,
+      };
+    }
+
+    const crawlResult = await crawler.crawlMultipleSpecies(
+      planForSource.tasks,
+      {
+        skipCache,
+      }
+    );
+
+    return {
+      data: crawlResult,
+      sourcePlan: planForSource,
+    };
   }
 
   /**

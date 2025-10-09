@@ -68,6 +68,7 @@ Also fixed HTML tag removal to properly remove entire tags:
 **Lines**: 184-188
 
 **Before**:
+
 ```javascript
 return text
   .replace(/[<>]/g, '') // Remove potential HTML tags
@@ -77,6 +78,7 @@ return text
 ```
 
 **After**:
+
 ```javascript
 return text
   .replace(/<[^>]*>/g, '') // Remove HTML tags
@@ -91,6 +93,7 @@ return text
 **Lines**: 579-584
 
 **Before**:
+
 ```javascript
 cleanText(text) {
   return text
@@ -101,6 +104,7 @@ cleanText(text) {
 ```
 
 **After**:
+
 ```javascript
 cleanText(text) {
   return text
@@ -117,6 +121,7 @@ cleanText(text) {
 **Lines**: 427-432
 
 **Before**:
+
 ```javascript
 cleanText(text) {
   return text
@@ -127,6 +132,7 @@ cleanText(text) {
 ```
 
 **After**:
+
 ```javascript
 cleanText(text) {
   return text
@@ -196,26 +202,26 @@ node tests/unit/validation-runner.js
 ### Before Fix
 
 ```javascript
-sanitizeText('Flabébé is a fairy type')
+sanitizeText('Flabébé is a fairy type');
 // Result: "Flabbe is a fairy type" ❌
 
-sanitizeText("Farfetch'd")
+sanitizeText("Farfetch'd");
 // Result: "Farfetchd" ❌
 
-sanitizeText('Nidoran♀ and Nidoran♂')
+sanitizeText('Nidoran♀ and Nidoran♂');
 // Result: "Nidoran and Nidoran" ❌
 ```
 
 ### After Fix
 
 ```javascript
-sanitizeText('Flabébé is a fairy type')
+sanitizeText('Flabébé is a fairy type');
 // Result: "Flabébé is a fairy type" ✅
 
-sanitizeText("Farfetch'd")
+sanitizeText("Farfetch'd");
 // Result: "Farfetch'd" ✅
 
-sanitizeText('Nidoran♀ and Nidoran♂')
+sanitizeText('Nidoran♀ and Nidoran♂');
 // Result: "Nidoran♀ and Nidoran♂" ✅
 ```
 
@@ -229,6 +235,7 @@ sanitizeText('Nidoran♀ and Nidoran♂')
 ## Related Issues
 
 This fix addresses:
+
 - Corrupted Pokémon names in database
 - Text sanitization removing valid punctuation
 - International character support

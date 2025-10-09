@@ -5,6 +5,7 @@ This file serves as the central hub for current task planning, progress tracking
 ## Project Overview
 
 **Infinite Pokédex** is a Progressive Web App that generates immersive, ever-changing lore for each Pokémon using on-device AI. Inspired by @starstatik's TikTok "iceberg" lore videos, the app combines:
+
 - Server-side web crawling (Bulbapedia/Serebii/Smogon) for canonical data
 - Client-side AI generation (WebLLM for lore, WebSD for artwork)
 - Gen 9 Pokédex (Rotom Phone) aesthetic
@@ -30,6 +31,7 @@ This file serves as the central hub for current task planning, progress tracking
 **Status**: Ready to begin
 
 **Key Tasks**:
+
 1. [ ] Set up WebLLM and load mlc-ai/Qwen3-0.6B-q4f16_0-MLC model
 2. [ ] Create Web Worker for model execution
 3. [ ] Implement prompt engineering with dSpy
@@ -40,6 +42,7 @@ This file serves as the central hub for current task planning, progress tracking
 8. [ ] Update documentation
 
 **Success Criteria**:
+
 - Model loads and runs on-device
 - Generates coherent 5-panel lore
 - Memory usage stays within limits
@@ -104,23 +107,31 @@ Sprint 4 is where the Infinite Pokédex finally delivers the “ever-changing lo
 
 ## Project Status Board
 
-- [ ] Sprint 4 — Server tidbit indexing & manifest design (planning)
-- [ ] Sprint 4 — Client sync & lore cache policy (planning)
-- [ ] Sprint 4 — WebLLM worker prompt spec (planning)
-- [ ] Sprint 4 — Lore UI/UX + regeneration planning (planning)
-- [ ] Sprint 4 — Test & documentation strategy (planning)
+- [x] Sprint 4 — Server tidbit indexing & manifest design (implementation)
+- [ ] Sprint 4 — Client sync & lore cache policy (implementation)
+- [ ] Sprint 4 — WebLLM worker prompt spec (implementation)
+- [ ] Sprint 4 — Lore UI/UX + regeneration planning (implementation)
+- [ ] Sprint 4 — Test & documentation strategy (implementation)
 
 ## Agent Feedback & Assistance Requests
 
 ### Current Blockers
+
 - None; ready to proceed once outstanding clarifications resolved.
 
 ### Questions for User
+
 ### Questions for User
+
 - None pending.
 
 ### Technical Decisions Needed
+
 1. Telemetry scope: allow local anonymized timing logs for debugging, or restrict to dev builds?
+
+### Upcoming Documentation Work
+
+- Reminder: After Sprint 4 implementation is complete, run a thorough docs/code refresh to cover new server pipeline + client sync changes.
 
 ## Pending Sprints
 
@@ -132,18 +143,21 @@ Sprint 4 is where the Infinite Pokédex finally delivers the “ever-changing lo
 ## Key Decisions & Assumptions
 
 ### Technical Decisions
+
 - **Vanilla HTML/CSS/JS**: For performance and bundle size
 - **On-device AI**: WebLLM/WebSD for privacy and offline capability
 - **CDN Distribution**: For fast global access to dataset
 - **Offline-First**: Service Worker + IndexedDB architecture
 
 ### Current Assumptions
+
 - Modern browsers support Web Workers and WebAssembly
 - WebLLM Qwen3-small model is suitable for mobile devices
 - Users have sufficient device resources (2GB+ RAM)
 - Model download size is acceptable (~500MB-1GB)
 
 ### Known Risks
+
 - **Performance**: AI models may be heavy for low-end devices
 - **Memory**: Model execution may exceed browser limits
 - **Download**: Large model size may deter users
@@ -152,15 +166,18 @@ Sprint 4 is where the Infinite Pokédex finally delivers the “ever-changing lo
 ## Agent Feedback & Assistance Requests
 
 ### Current Blockers
+
 None - Ready to begin Sprint 4
 
 ### Questions for User
+
 1. Should we implement a "lite" mode for low-end devices?
 2. What's the acceptable model download size?
 3. Should we cache generated lore or regenerate each time?
 4. Priority: Quality vs. Speed for lore generation?
 
 ### Technical Decisions Needed
+
 1. Model selection: Smallest Qwen3 vs. performance trade-off
 2. Prompt strategy: Single prompt vs. multi-step generation
 3. Caching strategy: Cache lore or always regenerate
@@ -169,18 +186,21 @@ None - Ready to begin Sprint 4
 ## Resources & References
 
 ### Core Documentation
+
 - [Project Requirements](./docs/agents/Project Requirements Doc.md)
 - [Implementation Plan](./docs/agents/Implementation Plan.md)
 - [Tech Stack](./docs/agents/Tech Stack Doc.md)
 - [Frontend Guidelines](./docs/agents/Frontend Guidelines.md)
 
 ### Technical Documentation
+
 - [CDN Sync System](./docs/code/sync.md)
 - [Version Management](./docs/code/version.md)
 - [Offline Support](./docs/code/offline.md)
 - [Service Worker](./docs/code/devops.md)
 
 ### External Resources
+
 - [WebLLM Documentation](https://github.com/mlc-ai/web-llm)
 - [dSpy Framework](https://github.com/stanfordnlp/dspy)
 - [WebSD Documentation](https://github.com/mlc-ai/web-stable-diffusion)
@@ -188,6 +208,7 @@ None - Ready to begin Sprint 4
 ## Recent Lessons
 
 ### Sprint 3 Learnings
+
 - **Chunked Downloads**: 100 items per chunk works well for memory
 - **Resume Capability**: Checkpoint system essential for large downloads
 - **Cache Strategies**: Separate caches by content type improves performance
@@ -195,12 +216,14 @@ None - Ready to begin Sprint 4
 - **Offline UX**: Clear messaging and auto-retry improves user experience
 
 ### Bug Fixes
+
 - **Inconsistent Block Scoping in Switch Statement**: Fixed inconsistent block scoping in models.js validateResponse() switch statement (lines 236-252). The `validation` case had explicit block scope with curly braces, but `tidbitSynthesis` and `safetyFilter` cases didn't. This inconsistency could lead to unexpected variable declaration conflicts in cases lacking their own block scope. Added explicit block scoping (`{ ... }`) to all three cases for consistency and safety. All validation tests pass after the fix. (Fixed: October 8, 2025)
 - **IndexedDB Transaction Completion Bug**: Fixed IndexedDB operations not waiting for transaction completion in version.js, sync.js, and offline.js. While operations were properly wrapped in Promises with `onsuccess`/`onerror` callbacks, they weren't waiting for the transaction's `oncomplete` event. This meant that write operations (`readwrite` transactions) could resolve before data was actually committed to the database. Added `tx.oncomplete` and `tx.onerror` event handlers to all IndexedDB operations to ensure transactions fully complete before the Promise resolves. This affected 5 methods in version.js (initialize, updateVersion, reset, getVersionHistory, addToHistory), 6 methods in sync.js (getCurrentVersion, storeSpecies, saveCheckpoint, getCheckpoint, clearCheckpoint, saveVersion), and 3 methods in offline.js (storeError, getStoredErrors, clearStoredErrors). All 69 unit tests pass after the fix. (Fixed: October 8, 2025)
 - **Logger Import Issue**: Fixed logger.js to export a logger object instead of individual functions. Modules were importing `{ logger }` expecting an object with methods like `logger.info()`, but the module was exporting individual functions. Changed to export a single logger object with debug/info/warn/error methods. This affected version.js, sync-ui.js, offline.js, and sync.js. (Fixed: October 2025)
 - **Offline Manager Fetch Event**: Removed ineffective `fetch` event listener from OfflineManager.setupEventListeners(). The code was trying to intercept fetch requests on the `window` object (lines 33-39), but `fetch` events are only dispatched in Service Worker contexts, not in the main thread. This listener would never fire, making it dead code. The OfflineManager already properly detects connectivity through `online` and `offline` events, which are the correct approach for the main thread. (Fixed: October 2025)
 
 ### Best Practices
+
 - **Documentation First**: Write docs before/during implementation
 - **Test Coverage**: 80%+ coverage catches most issues
 - **Error Handling**: Comprehensive error handling prevents silent failures

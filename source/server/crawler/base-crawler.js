@@ -311,11 +311,12 @@ class RateLimiter {
     if (this.burstTokens <= 0) {
       const waitTime = 1000 / this.config.requestsPerSecond;
       await new Promise((resolve) => setTimeout(resolve, waitTime));
-      
+
       // After waiting, refill tokens based on the time that passed
       const timeAfterWait = Date.now();
       const additionalTime = timeAfterWait - now;
-      const additionalTokens = (additionalTime / 1000) * this.config.requestsPerSecond;
+      const additionalTokens =
+        (additionalTime / 1000) * this.config.requestsPerSecond;
       this.burstTokens = Math.min(
         this.burstTokens + additionalTokens,
         this.config.burstLimit
@@ -518,7 +519,9 @@ class RobotsParser {
 
       const colonIndex = trimmed.indexOf(':');
       if (colonIndex === -1) {
-        logger.debug(`Skipping malformed robots.txt line (missing colon): ${trimmed}`);
+        logger.debug(
+          `Skipping malformed robots.txt line (missing colon): ${trimmed}`
+        );
         continue;
       }
 
@@ -527,7 +530,9 @@ class RobotsParser {
 
       // Skip lines with empty directive or where directive-only lines lack values
       if (!directive) {
-        logger.debug(`Skipping malformed robots.txt line (empty directive): ${trimmed}`);
+        logger.debug(
+          `Skipping malformed robots.txt line (empty directive): ${trimmed}`
+        );
         continue;
       }
 

@@ -173,6 +173,16 @@ export function getModelConfig(task) {
   if (!config) {
     throw new Error(`Unknown task: ${task}`);
   }
+
+  // Override model from environment variable if set
+  const envModelId = process.env.OPENROUTER_MODEL_ID;
+  if (envModelId) {
+    return {
+      ...config,
+      model: envModelId,
+    };
+  }
+
   return config;
 }
 
